@@ -1,0 +1,295 @@
+<?php
+/**
+ * Admin settings screen template.
+ *
+ * @package Etherlabz\Intercom_Woo_Sync
+ */
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
+
+use Etherlabz\Intercom_Woo_Sync\Modules\Settings\Settings;
+use Etherlabz\Intercom_Woo_Sync\Modules\Settings\Admin_Screen;
+use Etherlabz\Intercom_Woo_Sync\Modules\Bulk_Sync;
+use Etherlabz\Intercom_Woo_Sync\Modules\Fin_Connector;
+use Etherlabz\Intercom_Woo_Sync\Core\Encryption;
+
+$log = get_option( 'iws_sync_log', [] );
+if ( ! is_array( $log ) ) {
+	$log = [];
+}
+
+$bulk_running  = Bulk_Sync::is_running();
+$has_token     = '' !== get_option( 'iws_access_token', '' );
+$fin_key_raw   = (string) get_option( 'iws_fin_api_key', '' );
+$has_fin_key   = '' !== $fin_key_raw;
+$fin_key_masked = '';
+if ( $has_fin_key ) {
+	$plain = Encryption::decrypt( $fin_key_raw );
+	$fin_key_masked = substr( $plain, 0, 8 ) . str_repeat( '*', max( 0, strlen( $plain ) - 8 ) );
+}
+$endpoint_url = Fin_Connector::get_endpoint_url();
+?>
+
+<div class="wrap iws-wrap">
+
+	<!-- Header -->
+	<div class="iws-header">
+		<div class="iws-header__title">
+			<span class="dashicons dashicons-share iws-header__icon"></span>
+			<h1><?php esc_html_e( 'Intercom WooCommerce Sync', 'intercom-woo-sync' ); ?></h1>
+			<span class="iws-header__version">v<?php echo esc_html( INTERCOM_WOO_SYNC_VERSION ); ?></span>
+		</div>
+		<p class="iws-header__desc">
+			<?php esc_html_e( 'Sync your WooCommerce customers and order events to Intercom in real time.', 'intercom-woo-sync' ); ?>
+		</p>
+	</div>
+
+	<!-- Notices -->
+	<div id="iws-notices"></div>
+
+	<!-- Tab navigation -->
+	<nav class="iws-tabs" role="tablist">
+		<button class="iws-tabs__tab iws-tabs__tab--active" data-tab="settings" role="tab" aria-selected="true">
+			<span class="dashicons dashicons-admin-generic"></span>
+			<?php esc_html_e( 'Settings', 'intercom-woo-sync' ); ?>
+		</button>
+		<button class="iws-tabs__tab" data-tab="sync" role="tab" aria-selected="false">
+			<span class="dashicons dashicons-update"></span>
+			<?php esc_html_e( 'Bulk Sync', 'intercom-woo-sync' ); ?>
+		</button>
+		<button class="iws-tabs__tab" data-tab="fin" role="tab" aria-selected="false">
+			<span class="dashicons dashicons-superhero-alt"></span>
+			<?php esc_html_e( 'Fin / Data', 'intercom-woo-sync' ); ?>
+		</button>
+		<button class="iws-tabs__tab" data-tab="log" role="tab" aria-selected="false">
+			<span class="dashicons dashicons-list-view"></span>
+			<?php esc_html_e( 'Sync Log', 'intercom-woo-sync' ); ?>
+		</button>
+	</nav>
+
+	<!-- Tab: Settings -->
+	<div class="iws-tab-panel iws-tab-panel--active" id="iws-panel-settings" role="tabpanel">
+		<form method="post" action="options.php">
+			<?php
+			settings_fields( Settings::GROUP );
+			do_settings_sections( Admin_Screen::SCREEN_ID );
+			?>
+
+			<div class="iws-actions">
+				<?php submit_button( __( 'Save Settings', 'intercom-woo-sync' ), 'primary', 'submit', false ); ?>
+				<button type="button" id="iws-test-connection" class="button button-secondary" <?php disabled( ! $has_token ); ?>>
+					<span class="dashicons dashicons-yes-alt"></span>
+					<?php esc_html_e( 'Test Connection', 'intercom-woo-sync' ); ?>
+				</button>
+				<span id="iws-test-spinner" class="spinner"></span>
+				<span id="iws-test-result" class="iws-inline-result"></span>
+			</div>
+		</form>
+	</div>
+
+	<!-- Tab: Bulk Sync -->
+	<div class="iws-tab-panel" id="iws-panel-sync" role="tabpanel">
+		<div class="iws-card">
+			<h2><?php esc_html_e( 'Bulk Customer Sync', 'intercom-woo-sync' ); ?></h2>
+			<p>
+				<?php esc_html_e( 'Push all existing WooCommerce customers to Intercom. This runs in background batches of 25 via WP-Cron so it won\'t timeout or slow down your site.', 'intercom-woo-sync' ); ?>
+			</p>
+
+			<div class="iws-bulk-status" id="iws-bulk-status">
+				<?php if ( $bulk_running ) : ?>
+					<span class="iws-badge iws-badge--running">
+						<span class="dashicons dashicons-update iws-spin"></span>
+						<?php esc_html_e( 'Running…', 'intercom-woo-sync' ); ?>
+					</span>
+					<span class="iws-bulk-offset">
+						<?php
+						printf(
+							/* translators: %d: number of customers processed so far. */
+							esc_html__( '%d customers processed so far', 'intercom-woo-sync' ),
+							(int) get_option( 'iws_bulk_sync_offset', 0 )
+						);
+						?>
+					</span>
+				<?php else : ?>
+					<span class="iws-badge iws-badge--idle">
+						<?php esc_html_e( 'Idle', 'intercom-woo-sync' ); ?>
+					</span>
+				<?php endif; ?>
+			</div>
+
+			<div class="iws-actions" style="margin-top: 16px;">
+				<button type="button" id="iws-start-bulk-sync" class="button button-primary" <?php disabled( $bulk_running || ! $has_token ); ?>>
+					<span class="dashicons dashicons-update"></span>
+					<?php esc_html_e( 'Start Bulk Sync', 'intercom-woo-sync' ); ?>
+				</button>
+				<span id="iws-bulk-spinner" class="spinner"></span>
+				<span id="iws-bulk-result" class="iws-inline-result"></span>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tab: Fin / Data -->
+	<div class="iws-tab-panel" id="iws-panel-fin" role="tabpanel">
+
+		<!-- Register Data Attributes -->
+		<div class="iws-card" style="margin-bottom: 20px;">
+			<div class="iws-card__header">
+				<h2><?php esc_html_e( 'Custom Data Attributes', 'intercom-woo-sync' ); ?></h2>
+			</div>
+			<p>
+				<?php esc_html_e( 'Register the custom contact attributes that this plugin uses in Intercom. Run this once before your first bulk sync.', 'intercom-woo-sync' ); ?>
+			</p>
+			<div class="iws-attr-list">
+				<code>woo_customer_id</code>
+				<code>total_orders</code>
+				<code>lifetime_value</code>
+				<code>billing_city</code>
+				<code>billing_country</code>
+				<code>last_order_status</code>
+				<code>last_order_id</code>
+				<code>last_order_date</code>
+			</div>
+			<div class="iws-actions" style="margin-top: 16px;">
+				<button type="button" id="iws-register-attrs" class="button button-primary" <?php disabled( ! $has_token ); ?>>
+					<span class="dashicons dashicons-database-add"></span>
+					<?php esc_html_e( 'Register Attributes in Intercom', 'intercom-woo-sync' ); ?>
+				</button>
+				<span id="iws-attrs-spinner" class="spinner"></span>
+				<span id="iws-attrs-result" class="iws-inline-result"></span>
+			</div>
+		</div>
+
+		<!-- Fin Data Connector -->
+		<div class="iws-card" style="margin-bottom: 20px;">
+			<div class="iws-card__header">
+				<h2><?php esc_html_e( 'Fin Data Connector (Order Lookup)', 'intercom-woo-sync' ); ?></h2>
+			</div>
+			<p>
+				<?php esc_html_e( 'These REST API endpoints let Intercom Fin look up WooCommerce orders in real time. Configure them as a Custom Action in Intercom so Fin can answer "Where is my order?" questions.', 'intercom-woo-sync' ); ?>
+			</p>
+
+			<table class="iws-endpoint-table">
+				<tr>
+					<td class="iws-endpoint-label"><?php esc_html_e( 'Orders by email', 'intercom-woo-sync' ); ?></td>
+					<td><code>GET <?php echo esc_html( rest_url( 'iws/v1/orders?email={email}' ) ); ?></code></td>
+				</tr>
+				<tr>
+					<td class="iws-endpoint-label"><?php esc_html_e( 'Order by ID', 'intercom-woo-sync' ); ?></td>
+					<td><code>GET <?php echo esc_html( rest_url( 'iws/v1/orders/{id}' ) ); ?></code></td>
+				</tr>
+				<tr>
+					<td class="iws-endpoint-label"><?php esc_html_e( 'Customer by email', 'intercom-woo-sync' ); ?></td>
+					<td><code>GET <?php echo esc_html( rest_url( 'iws/v1/customer?email={email}' ) ); ?></code></td>
+				</tr>
+				<tr>
+					<td class="iws-endpoint-label"><?php esc_html_e( 'Auth header', 'intercom-woo-sync' ); ?></td>
+					<td><code>Authorization: Bearer &lt;your-fin-api-key&gt;</code></td>
+				</tr>
+			</table>
+
+			<h3 style="margin-top: 20px;"><?php esc_html_e( 'API Key', 'intercom-woo-sync' ); ?></h3>
+			<?php if ( $has_fin_key ) : ?>
+				<div class="iws-key-display">
+					<code id="iws-fin-key-value"><?php echo esc_html( $fin_key_masked ); ?></code>
+					<span class="iws-badge iws-badge--success"><?php esc_html_e( 'Active', 'intercom-woo-sync' ); ?></span>
+				</div>
+			<?php else : ?>
+				<p class="iws-hint"><?php esc_html_e( 'No API key generated yet. Generate one to authenticate Fin requests.', 'intercom-woo-sync' ); ?></p>
+			<?php endif; ?>
+
+			<div class="iws-actions" style="margin-top: 12px;">
+				<button type="button" id="iws-generate-fin-key" class="button <?php echo $has_fin_key ? 'button-secondary' : 'button-primary'; ?>">
+					<span class="dashicons dashicons-admin-network"></span>
+					<?php echo $has_fin_key
+						? esc_html__( 'Regenerate API Key', 'intercom-woo-sync' )
+						: esc_html__( 'Generate API Key', 'intercom-woo-sync' ); ?>
+				</button>
+				<span id="iws-finkey-spinner" class="spinner"></span>
+				<span id="iws-finkey-result" class="iws-inline-result"></span>
+			</div>
+
+			<!-- Shown after generation -->
+			<div id="iws-fin-key-reveal" class="iws-key-reveal" style="display:none; margin-top: 16px;">
+				<p class="iws-key-reveal__warn">
+					<span class="dashicons dashicons-warning"></span>
+					<?php esc_html_e( 'Copy this key now. It will not be shown in full again.', 'intercom-woo-sync' ); ?>
+				</p>
+				<input type="text" id="iws-fin-key-full" class="regular-text" readonly />
+				<button type="button" id="iws-copy-fin-key" class="button button-small">
+					<span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Copy', 'intercom-woo-sync' ); ?>
+				</button>
+			</div>
+		</div>
+
+		<!-- Intercom Custom Action Setup Guide -->
+		<div class="iws-card">
+			<div class="iws-card__header">
+				<h2><?php esc_html_e( 'Setup Guide: Intercom Custom Action for Fin', 'intercom-woo-sync' ); ?></h2>
+			</div>
+			<ol class="iws-setup-steps">
+				<li><?php esc_html_e( 'Click "Register Attributes" above (run once).', 'intercom-woo-sync' ); ?></li>
+				<li><?php esc_html_e( 'Generate an API key above and copy it.', 'intercom-woo-sync' ); ?></li>
+				<li><?php printf( esc_html__( 'In Intercom, go to %s.', 'intercom-woo-sync' ), '<strong>Settings &rarr; AI Agent &rarr; Custom Actions</strong>' ); ?></li>
+				<li><?php esc_html_e( 'Create a new Custom Action with these settings:', 'intercom-woo-sync' ); ?>
+					<ul style="margin-top:6px; list-style:disc; padding-left:20px;">
+						<li><strong>URL:</strong> <code><?php echo esc_html( rest_url( 'iws/v1/orders' ) ); ?></code></li>
+						<li><strong>Method:</strong> GET</li>
+						<li><strong>Header:</strong> <code>Authorization: Bearer YOUR_KEY</code></li>
+						<li><strong>Query param:</strong> <code>email</code> = the customer's email (use Intercom variable)</li>
+					</ul>
+				</li>
+				<li><?php esc_html_e( 'Save and enable the action. Fin will now be able to look up orders.', 'intercom-woo-sync' ); ?></li>
+				<li><?php esc_html_e( 'Paste your Identity Verification Secret in the Settings tab to enable HMAC on your frontend chat widget.', 'intercom-woo-sync' ); ?></li>
+			</ol>
+		</div>
+
+	</div>
+
+	<!-- Tab: Sync Log -->
+	<div class="iws-tab-panel" id="iws-panel-log" role="tabpanel">
+		<div class="iws-card">
+			<div class="iws-card__header">
+				<h2><?php esc_html_e( 'Recent Sync Activity', 'intercom-woo-sync' ); ?></h2>
+				<button type="button" id="iws-clear-log" class="button button-link-delete">
+					<span class="dashicons dashicons-trash"></span>
+					<?php esc_html_e( 'Clear Log', 'intercom-woo-sync' ); ?>
+				</button>
+			</div>
+
+			<div id="iws-log-table-wrap">
+				<?php if ( empty( $log ) ) : ?>
+					<p class="iws-empty"><?php esc_html_e( 'No log entries yet.', 'intercom-woo-sync' ); ?></p>
+				<?php else : ?>
+					<table class="widefat striped iws-log-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Time', 'intercom-woo-sync' ); ?></th>
+								<th><?php esc_html_e( 'Status', 'intercom-woo-sync' ); ?></th>
+								<th><?php esc_html_e( 'Action', 'intercom-woo-sync' ); ?></th>
+								<th><?php esc_html_e( 'Message', 'intercom-woo-sync' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $log as $entry ) : ?>
+								<tr>
+									<td><code><?php echo esc_html( $entry['time'] ?? '' ); ?></code></td>
+									<td>
+										<?php if ( 'success' === ( $entry['status'] ?? '' ) ) : ?>
+											<span class="iws-badge iws-badge--success"><?php esc_html_e( 'OK', 'intercom-woo-sync' ); ?></span>
+										<?php else : ?>
+											<span class="iws-badge iws-badge--error"><?php esc_html_e( 'Error', 'intercom-woo-sync' ); ?></span>
+										<?php endif; ?>
+									</td>
+									<td><code><?php echo esc_html( $entry['action'] ?? '' ); ?></code></td>
+									<td><?php echo esc_html( $entry['msg'] ?? '' ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+			</div>
+		</div>
+	</div>
+
+</div>
