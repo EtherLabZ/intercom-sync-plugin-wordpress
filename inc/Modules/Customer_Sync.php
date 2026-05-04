@@ -30,10 +30,10 @@ final class Customer_Sync implements Registrable {
 			return;
 		}
 
-		add_action( 'woocommerce_new_customer', [ $this, 'sync' ] );
-		add_action( 'woocommerce_update_customer', [ $this, 'sync' ] );
+		add_action( 'woocommerce_new_customer', array( $this, 'sync' ) );
+		add_action( 'woocommerce_update_customer', array( $this, 'sync' ) );
 		// Also fires when an external system pushes via WC REST API.
-		add_action( 'woocommerce_rest_insert_customer', [ $this, 'sync_rest' ], 10, 1 );
+		add_action( 'woocommerce_rest_insert_customer', array( $this, 'sync_rest' ), 10, 1 );
 	}
 
 	/**
@@ -66,22 +66,22 @@ final class Customer_Sync implements Registrable {
 		 */
 		$phone = $customer->get_billing_phone();
 
-		$payload = [
-			'role'        => 'user',
-			'external_id' => (string) $customer_id,
-			'email'       => $customer->get_email(),
-			'name'        => trim( $customer->get_first_name() . ' ' . $customer->get_last_name() ),
-			'signed_up_at' => $customer->get_date_created()
+		$payload = array(
+			'role'              => 'user',
+			'external_id'       => (string) $customer_id,
+			'email'             => $customer->get_email(),
+			'name'              => trim( $customer->get_first_name() . ' ' . $customer->get_last_name() ),
+			'signed_up_at'      => $customer->get_date_created()
 				? $customer->get_date_created()->getTimestamp()
 				: time(),
-			'custom_attributes' => [
+			'custom_attributes' => array(
 				'woo_customer_id' => $customer_id,
 				'total_orders'    => $customer->get_order_count(),
 				'lifetime_value'  => (float) $customer->get_total_spent(),
 				'billing_city'    => $customer->get_billing_city(),
 				'billing_country' => $customer->get_billing_country(),
-			],
-		];
+			),
+		);
 
 		// Intercom requires E.164 format (+<country><number>, 7-15 digits).
 		// Attempt to normalise, otherwise skip to avoid 422 errors.
@@ -92,7 +92,7 @@ final class Customer_Sync implements Registrable {
 			}
 		}
 
-		$data = apply_filters( 'iws_contact_payload', $payload, $customer );
+		$data = apply_filters( 'iws_contact_payload', $payload, $customer ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix; renaming would break downstream integrations.
 
 		$api->upsert_contact( $data );
 	}

@@ -26,7 +26,7 @@ final class Order_Events implements Registrable {
 	 *
 	 * @var array<string, string>
 	 */
-	private const EVENT_MAP = [
+	private const EVENT_MAP = array(
 		'pending'    => 'placed-order',
 		'processing' => 'order-processing',
 		'on-hold'    => 'order-on-hold',
@@ -34,7 +34,7 @@ final class Order_Events implements Registrable {
 		'cancelled'  => 'order-cancelled',
 		'refunded'   => 'order-refunded',
 		'shipped'    => 'order-shipped',
-	];
+	);
 
 	/**
 	 * {@inheritDoc}
@@ -44,7 +44,7 @@ final class Order_Events implements Registrable {
 			return;
 		}
 
-		add_action( 'woocommerce_order_status_changed', [ $this, 'handle_status_change' ], 10, 3 );
+		add_action( 'woocommerce_order_status_changed', array( $this, 'handle_status_change' ), 10, 3 );
 	}
 
 	/**
@@ -83,14 +83,22 @@ final class Order_Events implements Registrable {
 		 * @param string   $from     Previous status.
 		 * @param string   $to       New status.
 		 */
-		$metadata = apply_filters( 'iws_order_event_metadata', [
-			'order_id'    => (string) $order_id,
-			'order_total' => $order->get_total(),
-			'item_count'  => $order->get_item_count(),
-			'from_status' => $from,
-			'to_status'   => $to,
-			'currency'    => $order->get_currency(),
-		], $order, $from, $to );
+		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix; renaming would break downstream integrations.
+		$metadata = apply_filters(
+			'iws_order_event_metadata',
+			array(
+				'order_id'    => (string) $order_id,
+				'order_total' => $order->get_total(),
+				'item_count'  => $order->get_item_count(),
+				'from_status' => $from,
+				'to_status'   => $to,
+				'currency'    => $order->get_currency(),
+			),
+			$order,
+			$from,
+			$to
+		);
+		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
 		// Fire the event.
 		$api->create_event( $email, $event_name, $metadata );
@@ -102,13 +110,16 @@ final class Order_Events implements Registrable {
 			$search = $api->find_contact_by_email( $email );
 
 			if ( ! empty( $search['data'][0]['id'] ) ) {
-				$api->update_contact( $search['data'][0]['id'], [
-					'custom_attributes' => [
-						'last_order_status' => $to,
-						'last_order_id'     => (string) $order_id,
-						'last_order_date'   => time(),
-					],
-				] );
+				$api->update_contact(
+					$search['data'][0]['id'],
+					array(
+						'custom_attributes' => array(
+							'last_order_status' => $to,
+							'last_order_id'     => (string) $order_id,
+							'last_order_date'   => time(),
+						),
+					)
+				);
 			}
 		}
 	}

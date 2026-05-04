@@ -31,8 +31,8 @@ final class Bulk_Sync implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		add_action( 'iws_bulk_sync_cron', [ $this, 'run_batch' ] );
-		add_action( 'iws_bulk_sync_batch', [ $this, 'run_batch' ] );
+		add_action( 'iws_bulk_sync_cron', array( $this, 'run_batch' ) );
+		add_action( 'iws_bulk_sync_batch', array( $this, 'run_batch' ) );
 	}
 
 	/**
@@ -55,13 +55,15 @@ final class Bulk_Sync implements Registrable {
 
 		$offset = (int) get_option( 'iws_bulk_sync_offset', 0 );
 
-		$customers = get_users( [
-			'role'    => 'customer',
-			'number'  => self::BATCH_SIZE,
-			'offset'  => $offset,
-			'orderby' => 'ID',
-			'order'   => 'ASC',
-		] );
+		$customers = get_users(
+			array(
+				'role'    => 'customer',
+				'number'  => self::BATCH_SIZE,
+				'offset'  => $offset,
+				'orderby' => 'ID',
+				'order'   => 'ASC',
+			)
+		);
 
 		if ( empty( $customers ) ) {
 			// All done — reset offset and log completion.

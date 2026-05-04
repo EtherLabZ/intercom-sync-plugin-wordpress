@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<ruleset name="Intercom WooCommerce Sync">
+	<description>Coding standards for the Intercom WooCommerce Sync plugin.</description>
+
+	<!-- Scan the plugin root by default. -->
+	<file>.</file>
+
+	<!-- Exclude vendored and build artifacts. -->
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/build/*</exclude-pattern>
+	<exclude-pattern>*/languages/*</exclude-pattern>
+
+	<!-- Show progress, sniff codes, and colour. -->
+	<arg value="ps"/>
+	<arg name="colors"/>
+	<arg name="extensions" value="php"/>
+	<arg name="parallel" value="8"/>
+	<arg name="basepath" value="."/>
+
+	<!-- WordPress Coding Standards. -->
+	<rule ref="WordPress">
+		<!-- The plugin namespaces classes; file naming follows PSR-4, not WP file-name rules. -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+
+	<!-- Lock down minimum WP/PHP support so deprecated/new APIs are flagged correctly. -->
+	<config name="minimum_wp_version" value="6.0"/>
+	<config name="testVersion" value="7.4-"/>
+
+	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- Text domain enforcement. -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="intercom-woo-sync"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Prefix enforcement for global symbols (functions, classes, hooks, options). -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="iws"/>
+				<element value="intercom_woo_sync"/>
+				<element value="Etherlabz\Intercom_Woo_Sync"/>
+			</property>
+		</properties>
+		<!--
+			"iws" is intentionally short: it is the documented public hook/option
+			namespace (see README filter examples) and renaming would break
+			backwards compatibility for downstream integrations.
+		-->
+		<exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed"/>
+	</rule>
+
+	<!-- Allow snake_case namespaced class names (e.g. Intercom_API, Customer_Sync). -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="allowed_custom_properties" type="array">
+				<element value="customer_id"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

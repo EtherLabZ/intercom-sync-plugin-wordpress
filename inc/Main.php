@@ -25,7 +25,7 @@ final class Main {
 	 *
 	 * @var class-string<\Etherlabz\Intercom_Woo_Sync\Contracts\Registrable>[]
 	 */
-	private const REGISTRABLE_CLASSES = [
+	private const REGISTRABLE_CLASSES = array(
 		Core\Assets::class,
 		Modules\Customer_Sync::class,
 		Modules\Order_Events::class,
@@ -34,7 +34,7 @@ final class Main {
 		Modules\Settings\Settings::class,
 		Modules\Ajax_Handler::class,
 		Modules\Fin_Connector::class,
-	];
+	);
 
 	/**
 	 * {@inheritDoc}
@@ -54,8 +54,8 @@ final class Main {
 	private function setup(): void {
 		$this->load();
 
-		register_activation_hook( INTERCOM_WOO_SYNC_FILE, [ self::class, 'activate' ] );
-		register_deactivation_hook( INTERCOM_WOO_SYNC_FILE, [ self::class, 'deactivate' ] );
+		register_activation_hook( INTERCOM_WOO_SYNC_FILE, array( self::class, 'activate' ) );
+		register_deactivation_hook( INTERCOM_WOO_SYNC_FILE, array( self::class, 'deactivate' ) );
 	}
 
 	/**
@@ -74,7 +74,7 @@ final class Main {
 		add_option( 'iws_access_token', '' );
 		add_option( 'iws_sync_customers', 'yes' );
 		add_option( 'iws_sync_orders', 'yes' );
-		add_option( 'iws_sync_log', [] );
+		add_option( 'iws_sync_log', array() );
 		add_option( 'iws_hmac_secret', '' );
 		add_option( 'iws_fin_api_key', '' );
 
