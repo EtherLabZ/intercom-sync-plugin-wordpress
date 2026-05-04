@@ -5,7 +5,7 @@
  * The request() / upsert_contact() methods make HTTP calls via
  * wp_remote_request; those are integration-level and are skipped here.
  * We test the pure logic: token detection, log append, log trim, and
- * that test_connection() returns false when no token is set.
+ * that test_connection() returns WP_Error when no token is set.
  *
  * @package Etherlabz\Intercom_Woo_Sync\Tests\Unit
  */
@@ -60,19 +60,21 @@ class IntercomAPITest extends TestCase {
 	}
 
 	// ------------------------------------------------------------------
-	// test_connection() returns false when no token
+	// test_connection() returns WP_Error when no token
 	// ------------------------------------------------------------------
 
-	public function test_test_connection_returns_false_when_no_token(): void {
+	public function test_test_connection_returns_wp_error_when_no_token(): void {
 		Functions\when( 'get_option' )->justReturn( '' );
 
 		// log() will call get_option + update_option.
 		Functions\when( 'update_option' )->justReturn( true );
 		Functions\when( 'current_time' )->justReturn( '2026-01-01 00:00:00' );
 
-		$api = new Intercom_API();
+		$api    = new Intercom_API();
+		$result = $api->test_connection();
 
-		$this->assertFalse( $api->test_connection() );
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'intercom_no_token', $result->get_error_code() );
 	}
 
 	// ------------------------------------------------------------------

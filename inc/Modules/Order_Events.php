@@ -109,7 +109,7 @@ final class Order_Events implements Registrable {
 		if ( $customer_id ) {
 			$search = $api->find_contact_by_email( $email );
 
-			if ( ! empty( $search['data'][0]['id'] ) ) {
+			if ( ! is_wp_error( $search ) && ! empty( $search['data'][0]['id'] ) ) {
 				$api->update_contact(
 					$search['data'][0]['id'],
 					array(

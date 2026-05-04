@@ -44,12 +44,14 @@ final class Ajax_Handler implements Registrable {
 		$api    = new Intercom_API();
 		$result = $api->test_connection();
 
-		if ( false === $result ) {
-			wp_send_json_error(
-				array(
-					'message' => __( 'Connection failed. Check your access token.', 'intercom-woo-sync' ),
-				)
-			);
+		if ( is_wp_error( $result ) ) {
+			$data    = $result->get_error_data();
+			$status  = isset( $data['http_status'] ) ? (int) $data['http_status'] : 0;
+			$message = 401 === $status || 403 === $status
+				? __( 'Authentication failed. Your access token is invalid or expired.', 'intercom-woo-sync' )
+				: __( 'Connection failed. Check your access token.', 'intercom-woo-sync' );
+
+			wp_send_json_error( array( 'message' => $message ) );
 		}
 
 		$name = $result['name'] ?? $result['email'] ?? 'Unknown';
@@ -194,12 +196,50 @@ final class Ajax_Handler implements Registrable {
 		foreach ( $attributes as $attr ) {
 			$result = $api->create_data_attribute( $attr['name'], $attr['type'], $attr['desc'] );
 
-			if ( false === $result ) {
-				// Check if it already exists (Intercom returns 409 or specific error).
-				++$skipped;
+			if ( is_wp_error( $result ) ) {
+				$data        = $result->get_error_data();
+				$http_status = isset( $data['http_status'] ) ? (int) $data['http_status'] : 0;
+				$error_code  = $data['error_code'] ?? '';
+
+				// 401 / 403 — invalid or insufficient token; abort immediately.
+				if ( 401 === $http_status || 403 === $http_status ) {
+					wp_send_json_error(
+						array(
+							'message' => sprintf(
+								/* translators: %d: HTTP status code (401 or 403). */
+								__( 'Authentication error (HTTP %d). Please check your Intercom access token.', 'intercom-woo-sync' ),
+								$http_status
+							),
+						)
+					);
+					return; // wp_send_json_error exits, but return satisfies static analysis.
+				}
+
+				// 422 with "attribute_already_exists" — this attribute already exists; skip it.
+				if ( 'attribute_already_exists' === $error_code || 409 === $http_status ) {
+					++$skipped;
+				} else {
+					// Any other HTTP error (500, rate-limit 429, etc.) — count as real error.
+					++$errors;
+				}
 			} else {
 				++$created;
 			}
+		}
+
+		if ( $errors > 0 ) {
+			wp_send_json_error(
+				array(
+					'message' => sprintf(
+					/* translators: %1$d: created count, %2$d: skipped count, %3$d: error count. */
+						__( '%1$d attributes created, %2$d already existed, %3$d failed. Check the sync log for details.', 'intercom-woo-sync' ),
+						$created,
+						$skipped,
+						$errors
+					),
+				)
+			);
+			return;
 		}
 
 		wp_send_json_success(

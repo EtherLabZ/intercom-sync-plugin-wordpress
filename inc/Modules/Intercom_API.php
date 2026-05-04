@@ -55,7 +55,9 @@ final class Intercom_API {
 	 * @param string               $endpoint API endpoint (e.g. /contacts).
 	 * @param array<string, mixed> $body     Optional request body.
 	 *
-	 * @return array<string, mixed>|false Decoded JSON response or false on failure.
+	 * @return array<string, mixed>|\WP_Error Decoded JSON response, or WP_Error on
+	 *   transport failure or any HTTP 400+ response. The WP_Error data array contains:
+	 *   'http_status' (int) and 'error_code' (string, from Intercom's errors[0].code).
 	 */
 	public function request( string $method, string $endpoint, array $body = array() ) {
 		$args = array(
@@ -77,7 +79,7 @@ final class Intercom_API {
 
 		if ( is_wp_error( $response ) ) {
 			self::log( 'error', $endpoint, $response->get_error_message() );
-			return false;
+			return $response;
 		}
 
 		$code    = (int) wp_remote_retrieve_response_code( $response );
@@ -94,7 +96,16 @@ final class Intercom_API {
 				$msg .= ": {$error_msg}";
 			}
 			self::log( 'error', $endpoint, $msg );
-			return false;
+
+			return new \WP_Error(
+				'intercom_api_error',
+				$msg,
+				array(
+					'http_status' => $code,
+					'error_code'  => $error_code,
+					'error_msg'   => $error_msg,
+				)
+			);
 		}
 
 		self::log( 'success', $endpoint, "HTTP {$code}" );
@@ -110,7 +121,7 @@ final class Intercom_API {
 	 *
 	 * @param array<string, mixed> $data Contact payload.
 	 *
-	 * @return array<string, mixed>|false
+	 * @return array<string, mixed>|\WP_Error
 	 */
 	public function upsert_contact( array $data ) {
 		$email = $data['email'] ?? '';
@@ -118,7 +129,7 @@ final class Intercom_API {
 		if ( $email ) {
 			$search = $this->find_contact_by_email( $email );
 
-			if ( $search && ! empty( $search['data'][0]['id'] ) ) {
+			if ( ! is_wp_error( $search ) && ! empty( $search['data'][0]['id'] ) ) {
 				$intercom_id = $search['data'][0]['id'];
 				return $this->update_contact( $intercom_id, $data );
 			}
@@ -133,7 +144,7 @@ final class Intercom_API {
 	 * @param string               $intercom_id The Intercom contact ID.
 	 * @param array<string, mixed> $data        Fields to update.
 	 *
-	 * @return array<string, mixed>|false
+	 * @return array<string, mixed>|\WP_Error
 	 */
 	public function update_contact( string $intercom_id, array $data ) {
 		return $this->request( 'PUT', '/contacts/' . $intercom_id, $data );
@@ -144,7 +155,7 @@ final class Intercom_API {
 	 *
 	 * @param string $email The email to search for.
 	 *
-	 * @return array<string, mixed>|false
+	 * @return array<string, mixed>|\WP_Error
 	 */
 	public function find_contact_by_email( string $email ) {
 		return $this->request(
@@ -167,7 +178,7 @@ final class Intercom_API {
 	 * @param string               $event_name The event name.
 	 * @param array<string, mixed> $metadata   Optional event metadata.
 	 *
-	 * @return array<string, mixed>|false
+	 * @return array<string, mixed>|\WP_Error
 	 */
 	public function create_event( string $email, string $event_name, array $metadata = array() ) {
 		return $this->request(
@@ -189,7 +200,7 @@ final class Intercom_API {
 	 * @param string $type        One of: string, integer, float, boolean, date.
 	 * @param string $description Human-readable description.
 	 *
-	 * @return array<string, mixed>|false
+	 * @return array<string, mixed>|\WP_Error
 	 */
 	public function create_data_attribute( string $name, string $type = 'string', string $description = '' ) {
 		return $this->request(
@@ -207,7 +218,7 @@ final class Intercom_API {
 	/**
 	 * List all data attributes for contacts.
 	 *
-	 * @return array<string, mixed>|false
+	 * @return array<string, mixed>|\WP_Error
 	 */
 	public function list_data_attributes() {
 		return $this->request( 'GET', '/data_attributes?model=contact' );
@@ -216,12 +227,12 @@ final class Intercom_API {
 	/**
 	 * Verify the API connection by fetching the authenticated admin.
 	 *
-	 * @return array<string, mixed>|false
+	 * @return array<string, mixed>|\WP_Error Decoded /me response, or WP_Error on failure.
 	 */
 	public function test_connection() {
 		if ( ! $this->has_token() ) {
 			self::log( 'error', '/me', 'No access token configured.' );
-			return false;
+			return new \WP_Error( 'intercom_no_token', 'No access token configured.' );
 		}
 
 		return $this->request( 'GET', '/me' );
