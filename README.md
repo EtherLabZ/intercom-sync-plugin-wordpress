@@ -270,6 +270,6 @@ Coverage focuses on the pure-logic surfaces: encryption round-trip, settings san
 <div align="center">
 
 **Built with ♥ by [Etherlabz](https://etherlabz.com)**
-[GitHub](https://github.com/Evy04/intercom-sync) · [Issues](https://github.com/Evy04/intercom-sync/issues) · [Releases](https://github.com/Evy04/intercom-sync/releases)
+[GitHub](https://github.com/Evy04/intercom-sync) · [Issues](https://github.com/Evy04/intercom-sync/issues) · [Releases](https://github.com/Evy04/intercom-sync/releases) · [Discord](https://discord.gg/mUzv4wbX5p)
 
 </div>
