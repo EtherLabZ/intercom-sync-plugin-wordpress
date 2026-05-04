@@ -39,11 +39,11 @@ if ( $iws_has_fin_key ) {
 	<div class="iws-header">
 		<div class="iws-header__title">
 			<span class="dashicons dashicons-share iws-header__icon"></span>
-			<h1><?php esc_html_e( 'Intercom WooCommerce Sync', 'intercom-woo-sync' ); ?></h1>
+			<h1><?php esc_html_e( 'Etherlabz Intercom Sync', 'intercom-woo-sync' ); ?></h1>
 			<span class="iws-header__version">v<?php echo esc_html( INTERCOM_WOO_SYNC_VERSION ); ?></span>
 		</div>
 		<p class="iws-header__desc">
-			<?php esc_html_e( 'Sync your WooCommerce customers and order events to Intercom in real time.', 'intercom-woo-sync' ); ?>
+			<?php esc_html_e( 'The complete Intercom integration for WooCommerce — customers, order events, cart funnel, abandoned carts, subscriptions and tags.', 'intercom-woo-sync' ); ?>
 		</p>
 	</div>
 
