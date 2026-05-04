@@ -1,0 +1,43 @@
+# Files and directories excluded from the release ZIP.
+# Used by bin/build.sh via rsync --exclude-from.
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Claude Code session data
+.claude
+
+# CI / tooling config
+.github
+.distignore
+bin
+Makefile
+phpcs.xml.dist
+phpunit.xml.dist
+.phpcs.cache
+.phpunit.result.cache
+
+# Dependency management (plugin ships zero runtime Composer deps)
+composer.json
+composer.lock
+vendor
+
+# JavaScript tooling
+node_modules
+package.json
+package-lock.json
+
+# Tests
+tests
+
+# Build output (don't nest ZIPs inside ZIPs)
+dist
+
+# Dev docs (wordpress.org uses readme.txt)
+README.md
+
+# OS noise
+.DS_Store
+Thumbs.db

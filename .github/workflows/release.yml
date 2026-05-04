@@ -1,0 +1,51 @@
+name: Release
+
+# Triggered when a version tag is pushed (e.g. git tag v1.3.0 && git push --tags).
+# Creates a GitHub release and attaches the production ZIP automatically.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]*"
+
+permissions:
+  contents: write  # Required to create releases and upload assets.
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+
+      # The build script only uses rsync and zip — no Composer install needed
+      # because the plugin ships zero runtime Composer dependencies.
+      - name: Install rsync & zip
+        run: sudo apt-get install -y rsync zip
+
+      - name: Build production ZIP
+        run: bash bin/build.sh
+
+      - name: Read plugin version
+        id: version
+        run: |
+          VERSION=$(grep -m1 "Version:" intercom-woo-sync.php | sed 's/.*Version:[[:space:]]*//' | tr -d '[:space:]')
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "zip=dist/intercom-woo-sync-${VERSION}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.version.outputs.version }}"
+          files: "${{ steps.version.outputs.zip }}"
+          generate_release_notes: true
+          # Set draft: true here if you want to review releases before publishing.
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}  # auto-pre-release for v1.3.0-beta etc.

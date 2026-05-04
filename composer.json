@@ -28,6 +28,9 @@
         }
     },
     "scripts": {
+        "build": "bash bin/build.sh",
+        "release": "bash bin/release.sh --draft",
+        "release:publish": "bash bin/release.sh --publish",
         "lint": "phpcs",
         "lint:fix": "phpcbf",
         "lint:summary": "phpcs --report=summary",
@@ -35,6 +38,9 @@
         "test:coverage": "phpunit --coverage-text"
     },
     "scripts-descriptions": {
+        "build": "Build the production ZIP into dist/.",
+        "release": "Build ZIP and create a draft GitHub release (requires gh CLI).",
+        "release:publish": "Build ZIP and publish a GitHub release immediately.",
         "lint": "Run PHP_CodeSniffer against the plugin sources.",
         "lint:fix": "Auto-fix violations where possible (phpcbf).",
         "lint:summary": "Show a summary report of coding standard violations.",

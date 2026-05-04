@@ -1,6 +1,7 @@
 /vendor/
 /node_modules/
 /build/
+/dist/
 /languages/*.mo
 composer.lock
 .phpcs.cache
