@@ -28,10 +28,10 @@ final class Admin_Screen implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		add_action( 'admin_menu', [ $this, 'register_screen' ] );
+		add_action( 'admin_menu', array( $this, 'register_screen' ) );
 		add_filter(
 			'plugin_action_links_' . plugin_basename( INTERCOM_WOO_SYNC_FILE ),
-			[ $this, 'add_action_links' ]
+			array( $this, 'add_action_links' )
 		);
 	}
 
@@ -64,7 +64,7 @@ final class Admin_Screen implements Registrable {
 			__( 'Intercom Sync', 'intercom-woo-sync' ),
 			'manage_options',
 			self::SCREEN_ID,
-			[ $this, 'render_screen' ],
+			array( $this, 'render_screen' ),
 			'dashicons-share',
 			58
 		);

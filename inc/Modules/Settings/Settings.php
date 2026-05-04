@@ -34,7 +34,7 @@ final class Settings implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		add_action( 'admin_init', [ $this, 'register_settings' ] );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 	}
 
 	/**
@@ -43,29 +43,45 @@ final class Settings implements Registrable {
 	public function register_settings(): void {
 		// -- Settings registration ----------------------------------------
 
-		register_setting( self::GROUP, 'iws_access_token', [
-			'type'              => 'string',
-			'sanitize_callback' => [ self::class, 'sanitize_token' ],
-			'default'           => '',
-		] );
+		register_setting(
+			self::GROUP,
+			'iws_access_token',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_token' ),
+				'default'           => '',
+			)
+		);
 
-		register_setting( self::GROUP, 'iws_sync_customers', [
-			'type'              => 'string',
-			'sanitize_callback' => [ self::class, 'sanitize_yes_no' ],
-			'default'           => 'yes',
-		] );
+		register_setting(
+			self::GROUP,
+			'iws_sync_customers',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'yes',
+			)
+		);
 
-		register_setting( self::GROUP, 'iws_sync_orders', [
-			'type'              => 'string',
-			'sanitize_callback' => [ self::class, 'sanitize_yes_no' ],
-			'default'           => 'yes',
-		] );
+		register_setting(
+			self::GROUP,
+			'iws_sync_orders',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'yes',
+			)
+		);
 
-		register_setting( self::GROUP, 'iws_hmac_secret', [
-			'type'              => 'string',
-			'sanitize_callback' => [ self::class, 'sanitize_token' ],
-			'default'           => '',
-		] );
+		register_setting(
+			self::GROUP,
+			'iws_hmac_secret',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_token' ),
+				'default'           => '',
+			)
+		);
 
 		// -- Section ------------------------------------------------------
 
@@ -81,7 +97,7 @@ final class Settings implements Registrable {
 		add_settings_field(
 			'iws_access_token',
 			__( 'Intercom Access Token', 'intercom-woo-sync' ),
-			[ $this, 'render_token_field' ],
+			array( $this, 'render_token_field' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
 		);
@@ -89,7 +105,7 @@ final class Settings implements Registrable {
 		add_settings_field(
 			'iws_sync_customers',
 			__( 'Sync Customers', 'intercom-woo-sync' ),
-			[ $this, 'render_customers_toggle' ],
+			array( $this, 'render_customers_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
 		);
@@ -97,7 +113,7 @@ final class Settings implements Registrable {
 		add_settings_field(
 			'iws_sync_orders',
 			__( 'Sync Order Events', 'intercom-woo-sync' ),
-			[ $this, 'render_orders_toggle' ],
+			array( $this, 'render_orders_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
 		);
@@ -105,7 +121,7 @@ final class Settings implements Registrable {
 		add_settings_field(
 			'iws_hmac_secret',
 			__( 'Identity Verification Secret', 'intercom-woo-sync' ),
-			[ $this, 'render_hmac_field' ],
+			array( $this, 'render_hmac_field' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
 		);

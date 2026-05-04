@@ -55,7 +55,8 @@ final class Encryption {
 			return $value;
 		}
 
-		return self::PREFIX . base64_encode( $encrypted );
+		// Encoding ciphertext for safe storage in wp_options, not obfuscation.
+		return self::PREFIX . base64_encode( $encrypted ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 	}
 
 	/**
@@ -79,9 +80,10 @@ final class Encryption {
 			return $value;
 		}
 
-		$key     = self::get_key();
-		$iv      = self::get_iv();
-		$raw     = base64_decode( substr( $value, strlen( self::PREFIX ) ), true );
+		$key = self::get_key();
+		$iv  = self::get_iv();
+		// Decoding ciphertext stored by self::encrypt(); not obfuscation.
+		$raw = base64_decode( substr( $value, strlen( self::PREFIX ) ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 		if ( false === $raw ) {
 			return '';

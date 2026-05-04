@@ -44,7 +44,7 @@ final class Fin_Connector implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
+		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
 	/**
@@ -54,26 +54,38 @@ final class Fin_Connector implements Registrable {
 	 * arg is declared on routes. Order ID routes still declare 'id'.
 	 */
 	public function register_routes(): void {
-		// GET /wp-json/iws/v1/orders
-		register_rest_route( self::REST_NAMESPACE, '/orders', [
-			'methods'             => 'GET',
-			'callback'            => [ $this, 'get_orders_by_email' ],
-			'permission_callback' => [ $this, 'authenticate' ],
-		] );
+		// GET /wp-json/iws/v1/orders.
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/orders',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_orders_by_email' ),
+				'permission_callback' => array( $this, 'authenticate' ),
+			)
+		);
 
-		// GET /wp-json/iws/v1/orders/details -> pass order ID in header X-Intercom-Verified-OrderId
-		register_rest_route( self::REST_NAMESPACE, '/orders/details', [
-			'methods'             => 'GET',
-			'callback'            => [ $this, 'get_order_by_id' ],
-			'permission_callback' => [ $this, 'authenticate' ],
-		] );
+		// GET /wp-json/iws/v1/orders/details -> pass order ID in header X-Intercom-Verified-OrderId.
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/orders/details',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_order_by_id' ),
+				'permission_callback' => array( $this, 'authenticate' ),
+			)
+		);
 
-		// GET /wp-json/iws/v1/customer
-		register_rest_route( self::REST_NAMESPACE, '/customer', [
-			'methods'             => 'GET',
-			'callback'            => [ $this, 'get_customer_by_email' ],
-			'permission_callback' => [ $this, 'authenticate' ],
-		] );
+		// GET /wp-json/iws/v1/customer.
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/customer',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_customer_by_email' ),
+				'permission_callback' => array( $this, 'authenticate' ),
+			)
+		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -94,7 +106,7 @@ final class Fin_Connector implements Registrable {
 			return new WP_Error(
 				'rest_forbidden',
 				__( 'Missing or invalid Authorization header.', 'intercom-woo-sync' ),
-				[ 'status' => 401 ]
+				array( 'status' => 401 )
 			);
 		}
 
@@ -105,7 +117,7 @@ final class Fin_Connector implements Registrable {
 			return new WP_Error(
 				'rest_forbidden',
 				__( 'Invalid API key.', 'intercom-woo-sync' ),
-				[ 'status' => 403 ]
+				array( 'status' => 403 )
 			);
 		}
 
@@ -148,17 +160,17 @@ final class Fin_Connector implements Registrable {
 		return new WP_Error(
 			'missing_lookup_key',
 			__( 'No valid email provided. Send X-Intercom-Verified-Email or X-Email header.', 'intercom-woo-sync' ),
-			[ 'status' => 400 ]
+			array( 'status' => 400 )
 		);
 	}
-	
+
 	/**
 	 * Resolve the order ID from the X-Intercom-Verified-OrderId request header.
 	 *
 	 * @param WP_REST_Request $request Incoming request.
 	 * @return int|WP_Error Positive order ID or error.
 	 */
-	private function resolve_orderId( WP_REST_Request $request ): int|WP_Error {
+	private function resolve_order_id( WP_REST_Request $request ): int|WP_Error {
 		$header = $request->get_header( 'X-Intercom-Verified-OrderId' );
 
 		if ( ! empty( $header ) ) {
@@ -171,11 +183,11 @@ final class Fin_Connector implements Registrable {
 		return new WP_Error(
 			'missing_lookup_key',
 			__( 'No valid order ID provided. Send X-Intercom-Verified-OrderId header.', 'intercom-woo-sync' ),
-			[ 'status' => 400 ]
+			array( 'status' => 400 )
 		);
 	}
-	
-	 
+
+
 	// -------------------------------------------------------------------------
 	// Endpoint callbacks
 	// -------------------------------------------------------------------------
@@ -195,20 +207,24 @@ final class Fin_Connector implements Registrable {
 			return $email;
 		}
 
-		$orders = wc_get_orders( [
-			'billing_email' => $email,
-			'limit'         => 20,
-			'orderby'       => 'date',
-			'order'         => 'DESC',
-		] );
+		$orders = wc_get_orders(
+			array(
+				'billing_email' => $email,
+				'limit'         => 20,
+				'orderby'       => 'date',
+				'order'         => 'DESC',
+			)
+		);
 
-		$data = array_map( [ $this, 'format_order' ], $orders );
+		$data = array_map( array( $this, 'format_order' ), $orders );
 
-		return new WP_REST_Response( [
-			'email'       => $email,
-			'order_count' => count( $data ),
-			'orders'      => $data,
-		] );
+		return new WP_REST_Response(
+			array(
+				'email'       => $email,
+				'order_count' => count( $data ),
+				'orders'      => $data,
+			)
+		);
 	}
 
 	/**
@@ -228,18 +244,18 @@ final class Fin_Connector implements Registrable {
 			return $email;
 		}
 
-		$orderId = $this->resolve_orderId($request);
-		if ( is_wp_error( $orderId ) ) {
-			return $orderId;
+		$order_id = $this->resolve_order_id( $request );
+		if ( is_wp_error( $order_id ) ) {
+			return $order_id;
 		}
 
-		$order = wc_get_order( (int) $orderId );
+		$order = wc_get_order( (int) $order_id );
 
 		if ( ! $order instanceof WC_Order ) {
 			return new WP_Error(
 				'order_not_found',
 				__( 'Order not found.', 'intercom-woo-sync' ),
-				[ 'status' => 404 ]
+				array( 'status' => 404 )
 			);
 		}
 
@@ -248,7 +264,7 @@ final class Fin_Connector implements Registrable {
 			return new WP_Error(
 				'order_not_found',
 				__( 'Order not found.', 'intercom-woo-sync' ),
-				[ 'status' => 404 ]
+				array( 'status' => 404 )
 			);
 		}
 
@@ -276,25 +292,27 @@ final class Fin_Connector implements Registrable {
 			return new WP_Error(
 				'customer_not_found',
 				__( 'Customer not found.', 'intercom-woo-sync' ),
-				[ 'status' => 404 ]
+				array( 'status' => 404 )
 			);
 		}
 
 		$customer = new WC_Customer( $user->ID );
 
-		return new WP_REST_Response( [
-			'customer_id'     => $user->ID,
-			'email'           => $customer->get_email(),
-			'name'            => trim( $customer->get_first_name() . ' ' . $customer->get_last_name() ),
-			'phone'           => $customer->get_billing_phone(),
-			'billing_city'    => $customer->get_billing_city(),
-			'billing_country' => $customer->get_billing_country(),
-			'total_orders'    => $customer->get_order_count(),
-			'total_spent'     => (float) $customer->get_total_spent(),
-			'date_created'    => $customer->get_date_created()
-				? $customer->get_date_created()->date( 'c' )
-				: null,
-		] );
+		return new WP_REST_Response(
+			array(
+				'customer_id'     => $user->ID,
+				'email'           => $customer->get_email(),
+				'name'            => trim( $customer->get_first_name() . ' ' . $customer->get_last_name() ),
+				'phone'           => $customer->get_billing_phone(),
+				'billing_city'    => $customer->get_billing_city(),
+				'billing_country' => $customer->get_billing_country(),
+				'total_orders'    => $customer->get_order_count(),
+				'total_spent'     => (float) $customer->get_total_spent(),
+				'date_created'    => $customer->get_date_created()
+					? $customer->get_date_created()->date( 'c' )
+					: null,
+			)
+		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -321,7 +339,7 @@ final class Fin_Connector implements Registrable {
 	 * @return array<string, mixed>
 	 */
 	private function format_order( WC_Order $order ): array {
-		return [
+		return array(
 			'order_id'       => $order->get_id(),
 			'status'         => $order->get_status(),
 			'total'          => $order->get_total(),
@@ -331,7 +349,7 @@ final class Fin_Connector implements Registrable {
 				? $order->get_date_created()->date( 'c' )
 				: null,
 			'payment_method' => $order->get_payment_method_title(),
-		];
+		);
 	}
 
 	/**
@@ -342,31 +360,31 @@ final class Fin_Connector implements Registrable {
 	 * @return array<string, mixed>
 	 */
 	private function format_order_detail( WC_Order $order ): array {
-		$items = [];
+		$items = array();
 		foreach ( $order->get_items() as $item ) {
 			$product = $item->get_product();
-			$items[] = [
+			$items[] = array(
 				'name'     => $item->get_name(),
 				'sku'      => $product ? $product->get_sku() : '',
 				'quantity' => $item->get_quantity(),
 				'total'    => $item->get_total(),
-			];
+			);
 		}
 
-		$tracking       = [];
+		$tracking       = array();
 		$tracking_items = $order->get_meta( '_wc_shipment_tracking_items' );
 		if ( is_array( $tracking_items ) ) {
 			foreach ( $tracking_items as $t ) {
-				$tracking[] = [
-					'provider'        => $t['tracking_provider']    ?? '',
-					'tracking_number' => $t['tracking_number']      ?? '',
-					'date_shipped'    => $t['date_shipped']          ?? '',
+				$tracking[] = array(
+					'provider'        => $t['tracking_provider'] ?? '',
+					'tracking_number' => $t['tracking_number'] ?? '',
+					'date_shipped'    => $t['date_shipped'] ?? '',
 					'tracking_link'   => $t['custom_tracking_link'] ?? '',
-				];
+				);
 			}
 		}
 
-		return [
+		return array(
 			'order_id'         => $order->get_id(),
 			'status'           => $order->get_status(),
 			'total'            => $order->get_total(),
@@ -390,7 +408,7 @@ final class Fin_Connector implements Registrable {
 			'customer_note'    => $order->get_customer_note(),
 			'items'            => $items,
 			'tracking'         => $tracking,
-		];
+		);
 	}
 
 	// -------------------------------------------------------------------------

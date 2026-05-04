@@ -34,7 +34,7 @@ final class Assets implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 	}
 
 	/**
@@ -50,21 +50,25 @@ final class Assets implements Registrable {
 		wp_enqueue_style(
 			self::ADMIN_CSS,
 			INTERCOM_WOO_SYNC_URL . 'assets/css/admin.css',
-			[],
+			array(),
 			INTERCOM_WOO_SYNC_VERSION
 		);
 
 		wp_enqueue_script(
 			self::ADMIN_JS,
 			INTERCOM_WOO_SYNC_URL . 'assets/js/admin.js',
-			[ 'jquery' ],
+			array( 'jquery' ),
 			INTERCOM_WOO_SYNC_VERSION,
 			true
 		);
 
-		wp_localize_script( self::ADMIN_JS, 'iwsAdmin', [
-			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-			'nonce'   => wp_create_nonce( 'iws_admin_nonce' ),
-		] );
+		wp_localize_script(
+			self::ADMIN_JS,
+			'iwsAdmin',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'iws_admin_nonce' ),
+			)
+		);
 	}
 }

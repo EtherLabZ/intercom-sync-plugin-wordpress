@@ -14,21 +14,25 @@ use Etherlabz\Intercom_Woo_Sync\Modules\Bulk_Sync;
 use Etherlabz\Intercom_Woo_Sync\Modules\Fin_Connector;
 use Etherlabz\Intercom_Woo_Sync\Core\Encryption;
 
-$log = get_option( 'iws_sync_log', [] );
-if ( ! is_array( $log ) ) {
-	$log = [];
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+// Reason: these are file-scope locals in an included template, not true globals.
+// The iws_ prefix is used but WPCS rejects it as too short to count as valid.
+$iws_log = get_option( 'iws_sync_log', array() );
+if ( ! is_array( $iws_log ) ) {
+	$iws_log = array();
 }
 
-$bulk_running  = Bulk_Sync::is_running();
-$has_token     = '' !== get_option( 'iws_access_token', '' );
-$fin_key_raw   = (string) get_option( 'iws_fin_api_key', '' );
-$has_fin_key   = '' !== $fin_key_raw;
-$fin_key_masked = '';
-if ( $has_fin_key ) {
-	$plain = Encryption::decrypt( $fin_key_raw );
-	$fin_key_masked = substr( $plain, 0, 8 ) . str_repeat( '*', max( 0, strlen( $plain ) - 8 ) );
+$iws_bulk_running   = Bulk_Sync::is_running();
+$iws_has_token      = '' !== get_option( 'iws_access_token', '' );
+$iws_fin_key_raw    = (string) get_option( 'iws_fin_api_key', '' );
+$iws_has_fin_key    = '' !== $iws_fin_key_raw;
+$iws_fin_key_masked = '';
+if ( $iws_has_fin_key ) {
+	$iws_plain          = Encryption::decrypt( $iws_fin_key_raw );
+	$iws_fin_key_masked = substr( $iws_plain, 0, 8 ) . str_repeat( '*', max( 0, strlen( $iws_plain ) - 8 ) );
 }
-$endpoint_url = Fin_Connector::get_endpoint_url();
+$iws_endpoint_url = Fin_Connector::get_endpoint_url();
+// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 ?>
 
 <div class="wrap iws-wrap">
@@ -78,7 +82,7 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 
 			<div class="iws-actions">
 				<?php submit_button( __( 'Save Settings', 'intercom-woo-sync' ), 'primary', 'submit', false ); ?>
-				<button type="button" id="iws-test-connection" class="button button-secondary" <?php disabled( ! $has_token ); ?>>
+				<button type="button" id="iws-test-connection" class="button button-secondary" <?php disabled( ! $iws_has_token ); ?>>
 					<span class="dashicons dashicons-yes-alt"></span>
 					<?php esc_html_e( 'Test Connection', 'intercom-woo-sync' ); ?>
 				</button>
@@ -97,7 +101,7 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 			</p>
 
 			<div class="iws-bulk-status" id="iws-bulk-status">
-				<?php if ( $bulk_running ) : ?>
+				<?php if ( $iws_bulk_running ) : ?>
 					<span class="iws-badge iws-badge--running">
 						<span class="dashicons dashicons-update iws-spin"></span>
 						<?php esc_html_e( 'Running…', 'intercom-woo-sync' ); ?>
@@ -119,7 +123,7 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 			</div>
 
 			<div class="iws-actions" style="margin-top: 16px;">
-				<button type="button" id="iws-start-bulk-sync" class="button button-primary" <?php disabled( $bulk_running || ! $has_token ); ?>>
+				<button type="button" id="iws-start-bulk-sync" class="button button-primary" <?php disabled( $iws_bulk_running || ! $iws_has_token ); ?>>
 					<span class="dashicons dashicons-update"></span>
 					<?php esc_html_e( 'Start Bulk Sync', 'intercom-woo-sync' ); ?>
 				</button>
@@ -151,7 +155,7 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 				<code>last_order_date</code>
 			</div>
 			<div class="iws-actions" style="margin-top: 16px;">
-				<button type="button" id="iws-register-attrs" class="button button-primary" <?php disabled( ! $has_token ); ?>>
+				<button type="button" id="iws-register-attrs" class="button button-primary" <?php disabled( ! $iws_has_token ); ?>>
 					<span class="dashicons dashicons-database-add"></span>
 					<?php esc_html_e( 'Register Attributes in Intercom', 'intercom-woo-sync' ); ?>
 				</button>
@@ -189,9 +193,9 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 			</table>
 
 			<h3 style="margin-top: 20px;"><?php esc_html_e( 'API Key', 'intercom-woo-sync' ); ?></h3>
-			<?php if ( $has_fin_key ) : ?>
+			<?php if ( $iws_has_fin_key ) : ?>
 				<div class="iws-key-display">
-					<code id="iws-fin-key-value"><?php echo esc_html( $fin_key_masked ); ?></code>
+					<code id="iws-fin-key-value"><?php echo esc_html( $iws_fin_key_masked ); ?></code>
 					<span class="iws-badge iws-badge--success"><?php esc_html_e( 'Active', 'intercom-woo-sync' ); ?></span>
 				</div>
 			<?php else : ?>
@@ -199,11 +203,13 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 			<?php endif; ?>
 
 			<div class="iws-actions" style="margin-top: 12px;">
-				<button type="button" id="iws-generate-fin-key" class="button <?php echo $has_fin_key ? 'button-secondary' : 'button-primary'; ?>">
+				<button type="button" id="iws-generate-fin-key" class="button <?php echo $iws_has_fin_key ? 'button-secondary' : 'button-primary'; ?>">
 					<span class="dashicons dashicons-admin-network"></span>
-					<?php echo $has_fin_key
+					<?php
+					echo $iws_has_fin_key
 						? esc_html__( 'Regenerate API Key', 'intercom-woo-sync' )
-						: esc_html__( 'Generate API Key', 'intercom-woo-sync' ); ?>
+						: esc_html__( 'Generate API Key', 'intercom-woo-sync' );
+					?>
 				</button>
 				<span id="iws-finkey-spinner" class="spinner"></span>
 				<span id="iws-finkey-result" class="iws-inline-result"></span>
@@ -230,7 +236,12 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 			<ol class="iws-setup-steps">
 				<li><?php esc_html_e( 'Click "Register Attributes" above (run once).', 'intercom-woo-sync' ); ?></li>
 				<li><?php esc_html_e( 'Generate an API key above and copy it.', 'intercom-woo-sync' ); ?></li>
-				<li><?php printf( esc_html__( 'In Intercom, go to %s.', 'intercom-woo-sync' ), '<strong>Settings &rarr; AI Agent &rarr; Custom Actions</strong>' ); ?></li>
+				<li>
+				<?php
+					/* translators: %s: Intercom navigation path rendered as HTML (Settings → AI Agent → Custom Actions). */
+					printf( esc_html__( 'In Intercom, go to %s.', 'intercom-woo-sync' ), '<strong>Settings &rarr; AI Agent &rarr; Custom Actions</strong>' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				?>
+					</li>
 				<li><?php esc_html_e( 'Create a new Custom Action with these settings:', 'intercom-woo-sync' ); ?>
 					<ul style="margin-top:6px; list-style:disc; padding-left:20px;">
 						<li><strong>URL:</strong> <code><?php echo esc_html( rest_url( 'iws/v1/orders' ) ); ?></code></li>
@@ -258,7 +269,7 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 			</div>
 
 			<div id="iws-log-table-wrap">
-				<?php if ( empty( $log ) ) : ?>
+				<?php if ( empty( $iws_log ) ) : ?>
 					<p class="iws-empty"><?php esc_html_e( 'No log entries yet.', 'intercom-woo-sync' ); ?></p>
 				<?php else : ?>
 					<table class="widefat striped iws-log-table">
@@ -271,18 +282,18 @@ $endpoint_url = Fin_Connector::get_endpoint_url();
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $log as $entry ) : ?>
+							<?php foreach ( $iws_log as $iws_entry ) : // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>
 								<tr>
-									<td><code><?php echo esc_html( $entry['time'] ?? '' ); ?></code></td>
+									<td><code><?php echo esc_html( $iws_entry['time'] ?? '' ); ?></code></td>
 									<td>
-										<?php if ( 'success' === ( $entry['status'] ?? '' ) ) : ?>
+										<?php if ( 'success' === ( $iws_entry['status'] ?? '' ) ) : ?>
 											<span class="iws-badge iws-badge--success"><?php esc_html_e( 'OK', 'intercom-woo-sync' ); ?></span>
 										<?php else : ?>
 											<span class="iws-badge iws-badge--error"><?php esc_html_e( 'Error', 'intercom-woo-sync' ); ?></span>
 										<?php endif; ?>
 									</td>
-									<td><code><?php echo esc_html( $entry['action'] ?? '' ); ?></code></td>
-									<td><?php echo esc_html( $entry['msg'] ?? '' ); ?></td>
+									<td><code><?php echo esc_html( $iws_entry['action'] ?? '' ); ?></code></td>
+									<td><?php echo esc_html( $iws_entry['msg'] ?? '' ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>

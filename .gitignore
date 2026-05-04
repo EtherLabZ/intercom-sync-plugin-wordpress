@@ -1,0 +1,11 @@
+/vendor/
+/node_modules/
+/build/
+/languages/*.mo
+composer.lock
+.phpcs.cache
+.phpunit.result.cache
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

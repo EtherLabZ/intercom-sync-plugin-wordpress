@@ -37,7 +37,7 @@ final class Intercom_API {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$raw = (string) get_option( 'iws_access_token', '' );
+		$raw         = (string) get_option( 'iws_access_token', '' );
 		$this->token = Encryption::decrypt( $raw );
 	}
 
@@ -57,17 +57,17 @@ final class Intercom_API {
 	 *
 	 * @return array<string, mixed>|false Decoded JSON response or false on failure.
 	 */
-	public function request( string $method, string $endpoint, array $body = [] ) {
-		$args = [
+	public function request( string $method, string $endpoint, array $body = array() ) {
+		$args = array(
 			'method'  => $method,
 			'timeout' => 15,
-			'headers' => [
+			'headers' => array(
 				'Authorization'    => 'Bearer ' . $this->token,
 				'Content-Type'     => 'application/json',
 				'Accept'           => 'application/json',
 				'Intercom-Version' => '2.10',
-			],
-		];
+			),
+		);
 
 		if ( ! empty( $body ) ) {
 			$args['body'] = wp_json_encode( $body );
@@ -84,9 +84,9 @@ final class Intercom_API {
 		$decoded = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( $code >= 400 ) {
-			$error_msg = $decoded['errors'][0]['message'] ?? '';
+			$error_msg  = $decoded['errors'][0]['message'] ?? '';
 			$error_code = $decoded['errors'][0]['code'] ?? '';
-			$msg = "HTTP {$code}";
+			$msg        = "HTTP {$code}";
 			if ( $error_code ) {
 				$msg .= " [{$error_code}]";
 			}
@@ -99,7 +99,7 @@ final class Intercom_API {
 
 		self::log( 'success', $endpoint, "HTTP {$code}" );
 
-		return is_array( $decoded ) ? $decoded : [];
+		return is_array( $decoded ) ? $decoded : array();
 	}
 
 	/**
@@ -147,13 +147,17 @@ final class Intercom_API {
 	 * @return array<string, mixed>|false
 	 */
 	public function find_contact_by_email( string $email ) {
-		return $this->request( 'POST', '/contacts/search', [
-			'query' => [
-				'field'    => 'email',
-				'operator' => '=',
-				'value'    => $email,
-			],
-		] );
+		return $this->request(
+			'POST',
+			'/contacts/search',
+			array(
+				'query' => array(
+					'field'    => 'email',
+					'operator' => '=',
+					'value'    => $email,
+				),
+			)
+		);
 	}
 
 	/**
@@ -165,13 +169,17 @@ final class Intercom_API {
 	 *
 	 * @return array<string, mixed>|false
 	 */
-	public function create_event( string $email, string $event_name, array $metadata = [] ) {
-		return $this->request( 'POST', '/events', [
-			'event_name' => $event_name,
-			'created_at' => time(),
-			'email'      => $email,
-			'metadata'   => $metadata,
-		] );
+	public function create_event( string $email, string $event_name, array $metadata = array() ) {
+		return $this->request(
+			'POST',
+			'/events',
+			array(
+				'event_name' => $event_name,
+				'created_at' => time(),
+				'email'      => $email,
+				'metadata'   => $metadata,
+			)
+		);
 	}
 
 	/**
@@ -184,12 +192,16 @@ final class Intercom_API {
 	 * @return array<string, mixed>|false
 	 */
 	public function create_data_attribute( string $name, string $type = 'string', string $description = '' ) {
-		return $this->request( 'POST', '/data_attributes', [
-			'name'        => $name,
-			'model'       => 'contact',
-			'data_type'   => $type,
-			'description' => $description,
-		] );
+		return $this->request(
+			'POST',
+			'/data_attributes',
+			array(
+				'name'        => $name,
+				'model'       => 'contact',
+				'data_type'   => $type,
+				'description' => $description,
+			)
+		);
 	}
 
 	/**
@@ -223,18 +235,21 @@ final class Intercom_API {
 	 * @param string $msg     A human-readable message.
 	 */
 	public static function log( string $status, string $action, string $msg ): void {
-		$log = get_option( 'iws_sync_log', [] );
+		$log = get_option( 'iws_sync_log', array() );
 
 		if ( ! is_array( $log ) ) {
-			$log = [];
+			$log = array();
 		}
 
-		array_unshift( $log, [
-			'time'   => current_time( 'mysql' ),
-			'status' => $status,
-			'action' => $action,
-			'msg'    => $msg,
-		] );
+		array_unshift(
+			$log,
+			array(
+				'time'   => current_time( 'mysql' ),
+				'status' => $status,
+				'action' => $action,
+				'msg'    => $msg,
+			)
+		);
 
 		// Keep the last 100 entries.
 		update_option( 'iws_sync_log', array_slice( $log, 0, 100 ) );

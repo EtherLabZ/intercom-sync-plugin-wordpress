@@ -26,10 +26,16 @@ function run_uninstaller(): void {
 		return;
 	}
 
-	$site_ids = get_sites( [
-		'fields' => 'ids',
-		'number' => 0,
-	] ) ?: [];
+	$site_ids = get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	);
+
+	if ( ! is_array( $site_ids ) ) {
+		$site_ids = array();
+	}
 
 	foreach ( $site_ids as $site_id ) {
 		if ( ! switch_to_blog( (int) $site_id ) ) {
@@ -45,7 +51,7 @@ function run_uninstaller(): void {
  * Remove all plugin data for the current site.
  */
 function uninstall(): void {
-	$options = [
+	$options = array(
 		OPTION_PREFIX . 'access_token',
 		OPTION_PREFIX . 'sync_customers',
 		OPTION_PREFIX . 'sync_orders',
@@ -55,7 +61,7 @@ function uninstall(): void {
 		OPTION_PREFIX . 'bulk_sync_running',
 		OPTION_PREFIX . 'hmac_secret',
 		OPTION_PREFIX . 'fin_api_key',
-	];
+	);
 
 	foreach ( $options as $option ) {
 		delete_option( $option );

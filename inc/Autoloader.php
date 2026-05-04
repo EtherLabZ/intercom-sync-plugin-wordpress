@@ -28,22 +28,22 @@ final class Autoloader {
 	 * Register the autoloader with the SPL autoload stack.
 	 */
 	public static function register(): void {
-		spl_autoload_register( [ self::class, 'autoload' ] );
+		spl_autoload_register( array( self::class, 'autoload' ) );
 	}
 
 	/**
 	 * Autoload a class by its fully-qualified name.
 	 *
-	 * @param string $class The fully-qualified class name.
+	 * @param string $class_name The fully-qualified class name.
 	 */
-	public static function autoload( string $class ): void {
+	public static function autoload( string $class_name ): void {
 		// Bail if the class doesn't belong to our namespace.
-		if ( 0 !== strpos( $class, self::PREFIX ) ) {
+		if ( 0 !== strpos( $class_name, self::PREFIX ) ) {
 			return;
 		}
 
 		// Strip the namespace prefix.
-		$relative = substr( $class, strlen( self::PREFIX ) );
+		$relative = substr( $class_name, strlen( self::PREFIX ) );
 
 		// Convert namespace separators to directory separators.
 		$file = INTERCOM_WOO_SYNC_PATH . 'inc/' . str_replace( '\\', '/', $relative ) . '.php';

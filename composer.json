@@ -1,0 +1,32 @@
+{
+    "name": "etherlabz/intercom-woo-sync",
+    "description": "Syncs WooCommerce customers and order events to Intercom.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.10",
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "automattic/vipwpcs": "^3.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "lint": "phpcs",
+        "lint:fix": "phpcbf",
+        "lint:summary": "phpcs --report=summary"
+    },
+    "scripts-descriptions": {
+        "lint": "Run PHP_CodeSniffer against the plugin sources.",
+        "lint:fix": "Auto-fix violations where possible (phpcbf).",
+        "lint:summary": "Show a summary report of coding standard violations."
+    }
+}
