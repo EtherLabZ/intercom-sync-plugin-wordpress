@@ -81,4 +81,50 @@ class SettingsTest extends TestCase {
 		$this->assertSame( $encrypted, $result );
 		$this->assertSame( $token, Encryption::decrypt( $result ) );
 	}
+
+	// ------------------------------------------------------------------
+	// sanitize_app_id()
+	// ------------------------------------------------------------------
+
+	public function test_sanitize_app_id_strips_special_characters(): void {
+		$this->assertSame( 'abc123', Settings::sanitize_app_id( 'abc!@#123' ) );
+		$this->assertSame( 'workspaceid', Settings::sanitize_app_id( 'workspace<>id' ) );
+	}
+
+	public function test_sanitize_app_id_keeps_alphanumeric_and_dashes(): void {
+		$this->assertSame( 'abc-123_xyz', Settings::sanitize_app_id( 'abc-123_xyz' ) );
+	}
+
+	public function test_sanitize_app_id_trims_whitespace(): void {
+		$this->assertSame( 'abc123', Settings::sanitize_app_id( '   abc123  ' ) );
+	}
+
+	public function test_sanitize_app_id_handles_non_string(): void {
+		$this->assertSame( '', Settings::sanitize_app_id( null ) );
+		$this->assertSame( '', Settings::sanitize_app_id( 12345 ) );
+	}
+
+	// ------------------------------------------------------------------
+	// sanitize_minutes()
+	// ------------------------------------------------------------------
+
+	public function test_sanitize_minutes_clamps_to_floor_of_5(): void {
+		$this->assertSame( 5, Settings::sanitize_minutes( 0 ) );
+		$this->assertSame( 5, Settings::sanitize_minutes( 1 ) );
+		$this->assertSame( 5, Settings::sanitize_minutes( -10 ) );
+	}
+
+	public function test_sanitize_minutes_clamps_to_ceiling_of_10080(): void {
+		$this->assertSame( 10080, Settings::sanitize_minutes( 99999 ) );
+	}
+
+	public function test_sanitize_minutes_passes_through_valid_value(): void {
+		$this->assertSame( 60, Settings::sanitize_minutes( 60 ) );
+		$this->assertSame( 30, Settings::sanitize_minutes( 30 ) );
+	}
+
+	public function test_sanitize_minutes_casts_strings_to_int(): void {
+		$this->assertSame( 45, Settings::sanitize_minutes( '45' ) );
+		$this->assertSame( 5, Settings::sanitize_minutes( 'not-a-number' ) );
+	}
 }

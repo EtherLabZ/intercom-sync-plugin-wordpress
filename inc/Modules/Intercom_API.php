@@ -225,6 +225,89 @@ final class Intercom_API {
 	}
 
 	/**
+	 * Find a tag by name. Returns null if not found.
+	 *
+	 * @param string $name Tag name.
+	 *
+	 * @return array<string, mixed>|null|\WP_Error Tag object, null if not found,
+	 *   or WP_Error on transport / HTTP error.
+	 */
+	public function find_tag_by_name( string $name ) {
+		$response = $this->request( 'GET', '/tags' );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$data = $response['data'] ?? array();
+
+		foreach ( $data as $tag ) {
+			if ( isset( $tag['name'] ) && $tag['name'] === $name ) {
+				return $tag;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Create or update a tag in Intercom.
+	 *
+	 * Posting to /tags with just {name} creates the tag if missing,
+	 * or returns the existing tag (idempotent).
+	 *
+	 * @param string $name Tag name.
+	 *
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	public function create_tag( string $name ) {
+		return $this->request( 'POST', '/tags', array( 'name' => $name ) );
+	}
+
+	/**
+	 * Attach a tag to one or more contacts by Intercom contact ID.
+	 *
+	 * Per the Intercom v2.10 API, tags are attached via POST /contacts/{id}/tags
+	 * with { id: "<tag-id>" } payload (one contact at a time).
+	 *
+	 * @param string $contact_id The Intercom contact ID.
+	 * @param string $tag_id     The Intercom tag ID (returned by create_tag).
+	 *
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	public function tag_contact( string $contact_id, string $tag_id ) {
+		return $this->request(
+			'POST',
+			'/contacts/' . $contact_id . '/tags',
+			array( 'id' => $tag_id )
+		);
+	}
+
+	/**
+	 * Detach a tag from a contact.
+	 *
+	 * @param string $contact_id The Intercom contact ID.
+	 * @param string $tag_id     The Intercom tag ID.
+	 *
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	public function untag_contact( string $contact_id, string $tag_id ) {
+		return $this->request(
+			'DELETE',
+			'/contacts/' . $contact_id . '/tags/' . $tag_id
+		);
+	}
+
+	/**
+	 * Get the raw access token (for HMAC computation by the Messenger module).
+	 *
+	 * Intentionally package-internal; callers must hold a valid module reference.
+	 */
+	public function get_token(): string {
+		return $this->token;
+	}
+
+	/**
 	 * Verify the API connection by fetching the authenticated admin.
 	 *
 	 * @return array<string, mixed>|\WP_Error Decoded /me response, or WP_Error on failure.

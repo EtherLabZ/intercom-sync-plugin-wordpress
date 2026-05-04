@@ -83,6 +83,8 @@ final class Order_Events implements Registrable {
 		 * @param string   $from     Previous status.
 		 * @param string   $to       New status.
 		 */
+		$line_items = self::extract_line_items( $order );
+
 		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix; renaming would break downstream integrations.
 		$metadata = apply_filters(
 			'iws_order_event_metadata',
@@ -93,6 +95,7 @@ final class Order_Events implements Registrable {
 				'from_status' => $from,
 				'to_status'   => $to,
 				'currency'    => $order->get_currency(),
+				'line_items'  => wp_json_encode( $line_items ),
 			),
 			$order,
 			$from,
@@ -103,24 +106,104 @@ final class Order_Events implements Registrable {
 		// Fire the event.
 		$api->create_event( $email, $event_name, $metadata );
 
-		// Update the contact's last-order custom attributes.
-		$customer_id = $order->get_customer_id();
+		// Resolve the contact (creating it for guest checkouts) and update last-order attributes.
+		$customer_id = (int) $order->get_customer_id();
 
-		if ( $customer_id ) {
-			$search = $api->find_contact_by_email( $email );
+		if ( 0 === $customer_id && 'yes' === get_option( 'iws_sync_guest_checkout', 'yes' ) ) {
+			// Guest checkout: upsert the contact directly from the order.
+			$api->upsert_contact( self::guest_contact_payload( $order ) );
+		}
 
-			if ( ! is_wp_error( $search ) && ! empty( $search['data'][0]['id'] ) ) {
-				$api->update_contact(
-					$search['data'][0]['id'],
-					array(
-						'custom_attributes' => array(
-							'last_order_status' => $to,
-							'last_order_id'     => (string) $order_id,
-							'last_order_date'   => time(),
-						),
-					)
-				);
+		$search = $api->find_contact_by_email( $email );
+
+		if ( ! is_wp_error( $search ) && ! empty( $search['data'][0]['id'] ) ) {
+			$api->update_contact(
+				$search['data'][0]['id'],
+				array(
+					'custom_attributes' => array(
+						'last_order_status' => $to,
+						'last_order_id'     => (string) $order_id,
+						'last_order_date'   => time(),
+					),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Extract a compact, JSON-friendly per-line-item array from an order.
+	 *
+	 * Public + static so it can be unit-tested without live WooCommerce.
+	 *
+	 * @param \WC_Order $order The order.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function extract_line_items( \WC_Order $order ): array {
+		$out = array();
+
+		foreach ( $order->get_items() as $item ) {
+			if ( ! is_object( $item ) ) {
+				continue;
+			}
+
+			$product    = method_exists( $item, 'get_product' ) ? $item->get_product() : null;
+			$categories = array();
+
+			if ( $product ) {
+				$terms = wp_get_post_terms( (int) $product->get_id(), 'product_cat', array( 'fields' => 'slugs' ) );
+				if ( ! is_wp_error( $terms ) && is_array( $terms ) ) {
+					$categories = array_values( array_map( 'strval', $terms ) );
+				}
+			}
+
+			$out[] = array(
+				'product_id' => $product ? (string) $product->get_id() : '',
+				'name'       => method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '',
+				'sku'        => $product ? (string) $product->get_sku() : '',
+				'quantity'   => method_exists( $item, 'get_quantity' ) ? (int) $item->get_quantity() : 0,
+				'unit_price' => $product ? (float) $product->get_price() : 0.0,
+				'subtotal'   => method_exists( $item, 'get_subtotal' ) ? (float) $item->get_subtotal() : 0.0,
+				'categories' => $categories,
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Build a contact payload for a guest-checkout order.
+	 *
+	 * Guests have no WP user account, so we identify the contact purely
+	 * by email and use the billing details for name/location.
+	 *
+	 * @param \WC_Order $order The order.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function guest_contact_payload( \WC_Order $order ): array {
+		$payload = array(
+			'role'              => 'user',
+			'email'             => (string) $order->get_billing_email(),
+			'name'              => trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
+			'signed_up_at'      => $order->get_date_created()
+				? $order->get_date_created()->getTimestamp()
+				: time(),
+			'custom_attributes' => array(
+				'billing_city'    => (string) $order->get_billing_city(),
+				'billing_country' => (string) $order->get_billing_country(),
+				'guest_checkout'  => true,
+			),
+		);
+
+		$phone = (string) $order->get_billing_phone();
+		if ( '' !== $phone ) {
+			$digits = preg_replace( '/[^\d]/', '', $phone );
+			if ( $digits && strlen( $digits ) >= 7 && strlen( $digits ) <= 15 ) {
+				$payload['phone'] = '+' . $digits;
 			}
 		}
+
+		return $payload;
 	}
 }

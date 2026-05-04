@@ -83,6 +83,86 @@ final class Settings implements Registrable {
 			)
 		);
 
+		register_setting(
+			self::GROUP,
+			'iws_app_id',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_app_id' ),
+				'default'           => '',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_enable_messenger',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'no',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_enable_cart_events',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'no',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_enable_cart_abandonment',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'no',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_cart_abandon_minutes',
+			array(
+				'type'              => 'integer',
+				'sanitize_callback' => array( self::class, 'sanitize_minutes' ),
+				'default'           => 60,
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_enable_subscriptions',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'no',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_enable_purchase_tags',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'no',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_sync_guest_checkout',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'yes',
+			)
+		);
+
 		// -- Section ------------------------------------------------------
 
 		add_settings_section(
@@ -122,6 +202,70 @@ final class Settings implements Registrable {
 			'iws_hmac_secret',
 			__( 'Identity Verification Secret', 'intercom-woo-sync' ),
 			array( $this, 'render_hmac_field' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'iws_app_id',
+			__( 'Intercom App ID', 'intercom-woo-sync' ),
+			array( $this, 'render_app_id_field' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'iws_enable_messenger',
+			__( 'Embed Intercom Messenger', 'intercom-woo-sync' ),
+			array( $this, 'render_messenger_toggle' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'iws_enable_cart_events',
+			__( 'Track Cart & Funnel Events', 'intercom-woo-sync' ),
+			array( $this, 'render_cart_events_toggle' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'iws_enable_cart_abandonment',
+			__( 'Abandoned Cart Detection', 'intercom-woo-sync' ),
+			array( $this, 'render_cart_abandon_toggle' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'iws_cart_abandon_minutes',
+			__( 'Abandonment Threshold (minutes)', 'intercom-woo-sync' ),
+			array( $this, 'render_cart_abandon_minutes' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'iws_enable_subscriptions',
+			__( 'WooCommerce Subscriptions Events', 'intercom-woo-sync' ),
+			array( $this, 'render_subscriptions_toggle' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'iws_enable_purchase_tags',
+			__( 'Auto-Tag Customers by Purchase', 'intercom-woo-sync' ),
+			array( $this, 'render_purchase_tags_toggle' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'iws_sync_guest_checkout',
+			__( 'Sync Guest Checkout Customers', 'intercom-woo-sync' ),
+			array( $this, 'render_guest_checkout_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
 		);
@@ -200,6 +344,116 @@ final class Settings implements Registrable {
 		echo '</p>';
 	}
 
+	/**
+	 * Render the Intercom App ID field.
+	 */
+	public function render_app_id_field(): void {
+		$value = (string) get_option( 'iws_app_id', '' );
+		printf(
+			'<input type="text" id="iws_app_id" name="iws_app_id" value="%s" class="regular-text" autocomplete="off" placeholder="%s" />',
+			esc_attr( $value ),
+			esc_attr__( 'e.g. abc12def', 'intercom-woo-sync' )
+		);
+		echo '<p class="description">';
+		echo esc_html__( 'Your Intercom workspace ID. Required to embed the Messenger widget on your site. Found in Intercom → Settings → Workspace.', 'intercom-woo-sync' );
+		echo '</p>';
+	}
+
+	/**
+	 * Render the Messenger embed toggle.
+	 */
+	public function render_messenger_toggle(): void {
+		$this->render_yes_no_toggle(
+			'iws_enable_messenger',
+			'no',
+			__( 'Embed the Intercom chat widget on the public site (uses HMAC if a secret is set).', 'intercom-woo-sync' )
+		);
+	}
+
+	/**
+	 * Render the cart events toggle.
+	 */
+	public function render_cart_events_toggle(): void {
+		$this->render_yes_no_toggle(
+			'iws_enable_cart_events',
+			'no',
+			__( 'Send product-viewed, cart-added, coupon-applied, and checkout-started events to Intercom.', 'intercom-woo-sync' )
+		);
+	}
+
+	/**
+	 * Render the cart abandonment toggle.
+	 */
+	public function render_cart_abandon_toggle(): void {
+		$this->render_yes_no_toggle(
+			'iws_enable_cart_abandonment',
+			'no',
+			__( 'Fire a `cart-abandoned` event when a logged-in customer leaves items in their cart for longer than the threshold below.', 'intercom-woo-sync' )
+		);
+	}
+
+	/**
+	 * Render the cart abandonment minutes field.
+	 */
+	public function render_cart_abandon_minutes(): void {
+		$value = (int) get_option( 'iws_cart_abandon_minutes', 60 );
+		printf(
+			'<input type="number" id="iws_cart_abandon_minutes" name="iws_cart_abandon_minutes" value="%s" min="5" max="10080" step="5" class="small-text" />',
+			esc_attr( (string) $value )
+		);
+		echo '<span class="description"> ' . esc_html__( 'Minutes of inactivity before a cart is considered abandoned. Minimum 5, maximum 10080 (1 week).', 'intercom-woo-sync' ) . '</span>';
+	}
+
+	/**
+	 * Render the subscriptions events toggle.
+	 */
+	public function render_subscriptions_toggle(): void {
+		$this->render_yes_no_toggle(
+			'iws_enable_subscriptions',
+			'no',
+			__( 'Send subscription lifecycle events (activated, renewed, cancelled, payment failed) to Intercom. Requires WooCommerce Subscriptions.', 'intercom-woo-sync' )
+		);
+	}
+
+	/**
+	 * Render the auto-purchase-tags toggle.
+	 */
+	public function render_purchase_tags_toggle(): void {
+		$this->render_yes_no_toggle(
+			'iws_enable_purchase_tags',
+			'no',
+			__( 'Automatically apply Intercom tags like `purchased-{slug}` and `purchased-category-{slug}` on order completion (and remove them on refund).', 'intercom-woo-sync' )
+		);
+	}
+
+	/**
+	 * Render the guest checkout toggle.
+	 */
+	public function render_guest_checkout_toggle(): void {
+		$this->render_yes_no_toggle(
+			'iws_sync_guest_checkout',
+			'yes',
+			__( 'Create Intercom contacts for guest checkouts (using the billing email).', 'intercom-woo-sync' )
+		);
+	}
+
+	/**
+	 * Render a generic yes/no toggle.
+	 *
+	 * @param string $option_name Option key.
+	 * @param string $default_value Default value (yes / no).
+	 * @param string $description Help text after the toggle.
+	 */
+	private function render_yes_no_toggle( string $option_name, string $default_value, string $description ): void {
+		$value = get_option( $option_name, $default_value );
+		printf(
+			'<label class="iws-toggle"><input type="checkbox" name="%1$s" value="yes" %2$s /><span class="iws-toggle__slider"></span></label>',
+			esc_attr( $option_name ),
+			checked( $value, 'yes', false )
+		);
+		echo '<span class="description">' . esc_html( $description ) . '</span>';
+	}
+
 	// -- Sanitizers -------------------------------------------------------
 
 	/**
@@ -209,6 +463,32 @@ final class Settings implements Registrable {
 	 */
 	public static function sanitize_yes_no( $value ): string {
 		return 'yes' === $value ? 'yes' : 'no';
+	}
+
+	/**
+	 * Sanitize the Intercom App ID — alphanumeric only.
+	 *
+	 * @param mixed $value The raw value.
+	 */
+	public static function sanitize_app_id( $value ): string {
+		$value = is_string( $value ) ? trim( $value ) : '';
+		return (string) preg_replace( '/[^a-zA-Z0-9_-]/', '', $value );
+	}
+
+	/**
+	 * Sanitize a minutes-threshold integer (clamped 5..10080).
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function sanitize_minutes( $value ): int {
+		$value = (int) $value;
+		if ( $value < 5 ) {
+			$value = 5;
+		}
+		if ( $value > 10080 ) {
+			$value = 10080;
+		}
+		return $value;
 	}
 
 	/**

@@ -301,4 +301,25 @@ if ( $iws_has_fin_key ) {
 		</div>
 	</div>
 
+	<!-- Branding footer -->
+	<div class="iws-footer">
+		<span class="iws-footer__text">
+			<?php
+			printf(
+				/* translators: %1$s: heart icon HTML. %2$s: link to Etherlabz. */
+				esc_html__( 'Built with %1$s by %2$s', 'intercom-woo-sync' ),
+				'<span class="iws-footer__heart" aria-hidden="true">&#9829;</span>',
+				'<a href="https://etherlabz.com" target="_blank" rel="noopener noreferrer" class="iws-footer__brand">Etherlabz</a>'
+			); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			?>
+		</span>
+		<span class="iws-footer__sep" aria-hidden="true">&middot;</span>
+		<a href="https://github.com/Evy04/intercom-sync" target="_blank" rel="noopener noreferrer" class="iws-footer__link">
+			<span class="dashicons dashicons-editor-code"></span>
+			<?php esc_html_e( 'Source on GitHub', 'intercom-woo-sync' ); ?>
+		</a>
+		<span class="iws-footer__sep" aria-hidden="true">&middot;</span>
+		<span class="iws-footer__version">v<?php echo esc_html( INTERCOM_WOO_SYNC_VERSION ); ?></span>
+	</div>
+
 </div>

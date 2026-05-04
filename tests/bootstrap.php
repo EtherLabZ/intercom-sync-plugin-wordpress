@@ -54,6 +54,76 @@ if ( ! class_exists( 'WP_Error' ) ) {
 	// phpcs:enable
 }
 
+// Constants normally provided by WordPress core that some modules use.
+if ( ! defined( 'MINUTE_IN_SECONDS' ) ) {
+	define( 'MINUTE_IN_SECONDS', 60 );
+}
+if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+	define( 'HOUR_IN_SECONDS', 3600 );
+}
+if ( ! defined( 'DAY_IN_SECONDS' ) ) {
+	define( 'DAY_IN_SECONDS', 86400 );
+}
+
+// phpcs:disable -- minimal WooCommerce stub classes for the unit-test environment.
+// They declare the methods so method_exists() works. Mockery overrides behavior at runtime.
+
+if ( ! class_exists( 'WC_Order' ) ) {
+	class WC_Order {
+		public function get_items( $type = 'line_item' ) { return array(); }
+		public function get_billing_email(): string { return ''; }
+		public function get_billing_first_name(): string { return ''; }
+		public function get_billing_last_name(): string { return ''; }
+		public function get_billing_phone(): string { return ''; }
+		public function get_billing_city(): string { return ''; }
+		public function get_billing_country(): string { return ''; }
+		public function get_total() { return 0; }
+		public function get_currency(): string { return ''; }
+		public function get_item_count(): int { return 0; }
+		public function get_customer_id(): int { return 0; }
+		public function get_date_created() { return null; }
+	}
+}
+
+if ( ! class_exists( 'WC_Order_Item_Product' ) ) {
+	class WC_Order_Item_Product {
+		public function get_product() { return null; }
+		public function get_name(): string { return ''; }
+		public function get_quantity() { return 0; }
+		public function get_subtotal() { return 0; }
+	}
+}
+
+if ( ! class_exists( 'WC_Product' ) ) {
+	class WC_Product {
+		public function get_id(): int { return 0; }
+		public function get_name(): string { return ''; }
+		public function get_slug(): string { return ''; }
+		public function get_sku(): string { return ''; }
+		public function get_price() { return 0; }
+	}
+}
+
+if ( ! class_exists( 'WC_Subscription' ) ) {
+	class WC_Subscription {
+		public function get_billing_email(): string { return ''; }
+		public function get_id(): int { return 0; }
+		public function get_total() { return 0; }
+		public function get_currency(): string { return ''; }
+		public function get_items( $type = 'line_item' ) { return array(); }
+		public function get_date( $type ): string { return ''; }
+	}
+}
+
+if ( ! class_exists( 'WC_Coupon' ) ) {
+	class WC_Coupon {
+		public function __construct( $code = '' ) {}
+		public function get_discount_type(): string { return ''; }
+		public function get_amount() { return 0; }
+	}
+}
+// phpcs:enable
+
 // Register the plugin's own PSR-4 autoloader so inc/ classes are available.
 require_once dirname( __DIR__ ) . '/inc/Autoloader.php';
 \Etherlabz\Intercom_Woo_Sync\Autoloader::register();

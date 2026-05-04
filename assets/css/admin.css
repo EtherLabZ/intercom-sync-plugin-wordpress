@@ -532,3 +532,76 @@
   border-radius: 4px;
   font-size: 12px;
 }
+
+/* ----------------------------------------------------------------------
+ * Footer / Etherlabz branding
+ * ---------------------------------------------------------------------- */
+.iws-footer {
+  margin: 32px 0 12px;
+  padding: 14px 18px;
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.iws-footer__text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.iws-footer__heart {
+  color: #ef4444;
+  font-size: 14px;
+  line-height: 1;
+  margin: 0 2px;
+}
+
+.iws-footer__brand {
+  font-weight: 600;
+  color: #4338ca;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+}
+
+.iws-footer__brand:hover,
+.iws-footer__brand:focus {
+  color: #3730a3;
+  text-decoration: underline;
+}
+
+.iws-footer__sep {
+  color: #d1d5db;
+}
+
+.iws-footer__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #6b7280;
+  text-decoration: none;
+}
+
+.iws-footer__link:hover,
+.iws-footer__link:focus {
+  color: #4338ca;
+}
+
+.iws-footer__link .dashicons {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+}
+
+.iws-footer__version {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #9ca3af;
+}

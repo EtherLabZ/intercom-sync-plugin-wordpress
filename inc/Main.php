@@ -34,6 +34,11 @@ final class Main {
 		Modules\Settings\Settings::class,
 		Modules\Ajax_Handler::class,
 		Modules\Fin_Connector::class,
+		Modules\Messenger::class,
+		Modules\Cart_Events::class,
+		Modules\Cart_Abandonment::class,
+		Modules\Subscription_Events::class,
+		Modules\Tag_Manager::class,
 	);
 
 	/**
@@ -97,6 +102,17 @@ final class Main {
 		add_option( 'iws_hmac_secret', '' );
 		add_option( 'iws_fin_api_key', '' );
 
+		// New feature toggles (default off so upgrades are non-disruptive).
+		add_option( 'iws_app_id', '' );
+		add_option( 'iws_enable_messenger', 'no' );
+		add_option( 'iws_enable_cart_events', 'no' );
+		add_option( 'iws_enable_cart_abandonment', 'no' );
+		add_option( 'iws_cart_abandon_minutes', 60 );
+		add_option( 'iws_enable_subscriptions', 'no' );
+		add_option( 'iws_enable_purchase_tags', 'no' );
+		add_option( 'iws_sync_guest_checkout', 'yes' );
+		add_option( 'iws_pending_carts', array() );
+
 		// Schedule the bulk-sync cron if it doesn't exist.
 		if ( ! wp_next_scheduled( 'iws_bulk_sync_cron' ) ) {
 			wp_schedule_event( time(), 'daily', 'iws_bulk_sync_cron' );
@@ -110,5 +126,6 @@ final class Main {
 	 */
 	public static function deactivate(): void {
 		wp_clear_scheduled_hook( 'iws_bulk_sync_cron' );
+		Modules\Cart_Abandonment::unschedule();
 	}
 }

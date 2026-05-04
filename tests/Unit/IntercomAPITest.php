@@ -205,4 +205,101 @@ class IntercomAPITest extends TestCase {
 
 		$this->assertCount( 1, $stored['iws_sync_log'] );
 	}
+
+	// ------------------------------------------------------------------
+	// find_tag_by_name() — tests the search-by-name logic against the /tags list.
+	// ------------------------------------------------------------------
+
+	public function test_find_tag_by_name_returns_match_when_present(): void {
+		Functions\when( 'get_option' )->justReturn( Encryption::encrypt( 'tok' ) );
+		Functions\when( 'update_option' )->justReturn( true );
+		Functions\when( 'current_time' )->justReturn( '2026-05-04 12:00:00' );
+		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 200 );
+		Functions\when( 'is_wp_error' )->alias( fn( $t ) => $t instanceof \WP_Error );
+		Functions\when( 'wp_remote_retrieve_body' )->justReturn(
+			json_encode(
+				array(
+					'data' => array(
+						array(
+							'id'   => '101',
+							'name' => 'vip',
+						),
+						array(
+							'id'   => '102',
+							'name' => 'newsletter',
+						),
+					),
+				)
+			)
+		);
+		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
+		Functions\when( 'wp_remote_request' )->justReturn(
+			array(
+				'response' => array( 'code' => 200 ),
+				'body'     => '',
+			)
+		);
+
+		$api = new Intercom_API();
+		$tag = $api->find_tag_by_name( 'newsletter' );
+
+		$this->assertIsArray( $tag );
+		$this->assertSame( '102', $tag['id'] );
+	}
+
+	public function test_find_tag_by_name_returns_null_when_not_present(): void {
+		Functions\when( 'get_option' )->justReturn( Encryption::encrypt( 'tok' ) );
+		Functions\when( 'update_option' )->justReturn( true );
+		Functions\when( 'current_time' )->justReturn( '2026-05-04 12:00:00' );
+		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 200 );
+		Functions\when( 'is_wp_error' )->alias( fn( $t ) => $t instanceof \WP_Error );
+		Functions\when( 'wp_remote_retrieve_body' )->justReturn(
+			json_encode( array( 'data' => array( array( 'id' => '101', 'name' => 'vip' ) ) ) )
+		);
+		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
+		Functions\when( 'wp_remote_request' )->justReturn(
+			array(
+				'response' => array( 'code' => 200 ),
+				'body'     => '',
+			)
+		);
+
+		$api = new Intercom_API();
+
+		$this->assertNull( $api->find_tag_by_name( 'missing-tag' ) );
+	}
+
+	public function test_find_tag_by_name_propagates_wp_error(): void {
+		Functions\when( 'get_option' )->justReturn( Encryption::encrypt( 'tok' ) );
+		Functions\when( 'update_option' )->justReturn( true );
+		Functions\when( 'current_time' )->justReturn( '2026-05-04 12:00:00' );
+		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 401 );
+		Functions\when( 'is_wp_error' )->alias( fn( $t ) => $t instanceof \WP_Error );
+		Functions\when( 'wp_remote_retrieve_body' )->justReturn(
+			json_encode(
+				array(
+					'errors' => array(
+						array(
+							'code'    => 'unauthorized',
+							'message' => 'Bad token',
+						),
+					),
+				)
+			)
+		);
+		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
+		Functions\when( 'wp_remote_request' )->justReturn(
+			array(
+				'response' => array( 'code' => 401 ),
+				'body'     => '',
+			)
+		);
+
+		$api    = new Intercom_API();
+		$result = $api->find_tag_by_name( 'whatever' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$data = $result->get_error_data();
+		$this->assertSame( 401, $data['http_status'] );
+	}
 }
