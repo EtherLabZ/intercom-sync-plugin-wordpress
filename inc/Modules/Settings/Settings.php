@@ -148,7 +148,7 @@ final class Settings implements Registrable {
 		);
 		echo '<p class="description">';
 		if ( '' !== $plain ) {
-			echo '<span class="dashicons dashicons-lock" style="color:#059669;font-size:14px;vertical-align:middle;"></span> ';
+			echo '<span class="dashicons dashicons-lock iws-lock-icon"></span> ';
 			echo esc_html__( 'Token is stored encrypted.', 'intercom-woo-sync' ) . ' ';
 		}
 		echo esc_html__( 'Found in Intercom → Settings → Developers → Access Token.', 'intercom-woo-sync' );
@@ -193,7 +193,7 @@ final class Settings implements Registrable {
 		);
 		echo '<p class="description">';
 		if ( '' !== $plain ) {
-			echo '<span class="dashicons dashicons-lock" style="color:#059669;font-size:14px;vertical-align:middle;"></span> ';
+			echo '<span class="dashicons dashicons-lock iws-lock-icon"></span> ';
 			echo esc_html__( 'Secret is stored encrypted.', 'intercom-woo-sync' ) . ' ';
 		}
 		echo esc_html__( 'Found in Intercom → Settings → Identity Verification. Used to generate HMAC for the chat widget.', 'intercom-woo-sync' );

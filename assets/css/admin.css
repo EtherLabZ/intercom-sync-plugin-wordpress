@@ -336,8 +336,45 @@
 }
 
 /* ----------------------------------------------------------------
-   Utility
+   Utility / spacing helpers (replaces inline styles)
    ---------------------------------------------------------------- */
+
+.iws-mt-12 {
+  margin-top: 12px;
+}
+
+.iws-mt-16 {
+  margin-top: 16px;
+}
+
+.iws-mt-20 {
+  margin-top: 20px;
+}
+
+.iws-mb-20 {
+  margin-bottom: 20px;
+}
+
+.iws-hidden {
+  display: none;
+}
+
+/* Lock icon beside encrypted-token description */
+.iws-lock-icon {
+  color: #059669;
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  vertical-align: middle;
+}
+
+/* Sub-list inside setup steps */
+.iws-setup-steps__sub {
+  margin-top: 6px;
+  list-style: disc;
+  padding-left: 20px;
+}
 
 @keyframes iws-spin {
   to {

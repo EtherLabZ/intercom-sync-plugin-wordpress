@@ -7,11 +7,14 @@
         "php": ">=7.4"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.10",
-        "wp-coding-standards/wpcs": "^3.1",
-        "phpcompatibility/phpcompatibility-wp": "^2.1",
         "automattic/vipwpcs": "^3.0",
-        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+        "brain/monkey": "^2.6",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "mockery/mockery": "^1.6",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpunit/phpunit": "^10.5 || ^11.0",
+        "squizlabs/php_codesniffer": "^3.10",
+        "wp-coding-standards/wpcs": "^3.1"
     },
     "config": {
         "allow-plugins": {
@@ -19,14 +22,23 @@
         },
         "sort-packages": true
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Etherlabz\\Intercom_Woo_Sync\\Tests\\": "tests/"
+        }
+    },
     "scripts": {
         "lint": "phpcs",
         "lint:fix": "phpcbf",
-        "lint:summary": "phpcs --report=summary"
+        "lint:summary": "phpcs --report=summary",
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-text"
     },
     "scripts-descriptions": {
         "lint": "Run PHP_CodeSniffer against the plugin sources.",
         "lint:fix": "Auto-fix violations where possible (phpcbf).",
-        "lint:summary": "Show a summary report of coding standard violations."
+        "lint:summary": "Show a summary report of coding standard violations.",
+        "test": "Run the PHPUnit test suite.",
+        "test:coverage": "Run PHPUnit with text coverage report."
     }
 }

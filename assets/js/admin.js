@@ -7,6 +7,8 @@
 (function ($) {
   "use strict";
 
+  var i18n = (iwsAdmin && iwsAdmin.i18n) ? iwsAdmin.i18n : {};
+
   $(document).ready(function () {
     /* ---------------------------------------------------------------
 	   Tab navigation
@@ -38,11 +40,9 @@
     function showNotice(type, message) {
       var $el = $("#iws-notices");
       $el.html(
-        '<div class="iws-notice iws-notice--' +
-          type +
-          '">' +
-          message +
-          "</div>",
+        $("<div>")
+          .addClass("iws-notice iws-notice--" + type)
+          .text(message),
       );
       setTimeout(function () {
         $el.find(".iws-notice").fadeOut(300, function () {
@@ -85,7 +85,7 @@
           }
         })
         .fail(function () {
-          $result.text("Request failed.").addClass("error");
+          $result.text(i18n.requestFailed || "Request failed.").addClass("error");
         })
         .always(function () {
           $btn.prop("disabled", false);
@@ -118,7 +118,7 @@
           }
         })
         .fail(function () {
-          $result.text("Request failed.").addClass("error");
+          $result.text(i18n.requestFailed || "Request failed.").addClass("error");
           $btn.prop("disabled", false);
         })
         .always(function () {
@@ -140,18 +140,26 @@
           var $status = $("#iws-bulk-status");
 
           if (res.data.running) {
-            $status.html(
-              '<span class="iws-badge iws-badge--running">' +
-                '<span class="dashicons dashicons-update iws-spin"></span> Running&hellip;</span>' +
-                '<span class="iws-bulk-offset">' +
-                res.data.offset +
-                " customers processed so far</span>",
-            );
+            var runningBadge = $("<span>")
+              .addClass("iws-badge iws-badge--running")
+              .html(
+                '<span class="dashicons dashicons-update iws-spin"></span> ' +
+                escHtml(i18n.running || "Running…"),
+              );
+            var offsetText = $("<span>")
+              .addClass("iws-bulk-offset")
+              .text(res.data.offset + " " + (i18n.customersCount || "customers processed so far"));
+
+            $status.empty().append(runningBadge).append(offsetText);
           } else {
-            $status.html('<span class="iws-badge iws-badge--idle">Idle</span>');
+            $status.html(
+              $("<span>")
+                .addClass("iws-badge iws-badge--idle")
+                .text(i18n.idle || "Idle"),
+            );
             $("#iws-start-bulk-sync").prop("disabled", false);
             $("#iws-bulk-result")
-              .text("Bulk sync complete.")
+              .text(i18n.bulkComplete || "Bulk sync complete.")
               .addClass("success");
             clearInterval(interval);
           }
@@ -169,14 +177,15 @@
 	   --------------------------------------------------------------- */
 
     $("#iws-clear-log").on("click", function () {
-      if (!confirm("Clear the entire sync log?")) {
+      // eslint-disable-next-line no-alert
+      if (!window.confirm(i18n.clearLogConfirm || "Clear the entire sync log?")) {
         return;
       }
 
       ajaxPost("iws_clear_log").done(function (res) {
         if (res.success) {
           $("#iws-log-table-wrap").html(
-            '<p class="iws-empty">No log entries yet.</p>',
+            $("<p>").addClass("iws-empty").text(i18n.noLogEntries || "No log entries yet."),
           );
           showNotice("success", res.data.message);
         }
@@ -191,42 +200,40 @@
       ajaxPost("iws_get_log").done(function (res) {
         if (!res.success || !res.data.log || 0 === res.data.log.length) {
           $("#iws-log-table-wrap").html(
-            '<p class="iws-empty">No log entries yet.</p>',
+            $("<p>").addClass("iws-empty").text(i18n.noLogEntries || "No log entries yet."),
           );
           return;
         }
 
-        var html =
-          '<table class="widefat striped iws-log-table">' +
-          "<thead><tr>" +
-          "<th>Time</th><th>Status</th><th>Action</th><th>Message</th>" +
-          "</tr></thead><tbody>";
+        var $table = $('<table class="widefat striped iws-log-table">');
+        var $thead = $("<thead>").append(
+          $("<tr>").append(
+            $("<th>").text(i18n.logColTime || "Time"),
+            $("<th>").text(i18n.logColStatus || "Status"),
+            $("<th>").text(i18n.logColAction || "Action"),
+            $("<th>").text(i18n.logColMessage || "Message"),
+          ),
+        );
+        var $tbody = $("<tbody>");
 
         $.each(res.data.log, function (i, entry) {
-          var badge =
-            "success" === entry.status
-              ? '<span class="iws-badge iws-badge--success">OK</span>'
-              : '<span class="iws-badge iws-badge--error">Error</span>';
+          var isSuccess = "success" === entry.status;
+          var $badge = $("<span>")
+            .addClass("iws-badge " + (isSuccess ? "iws-badge--success" : "iws-badge--error"))
+            .text(isSuccess ? (i18n.badgeOk || "OK") : (i18n.badgeError || "Error"));
 
-          html +=
-            "<tr>" +
-            "<td><code>" +
-            escHtml(entry.time || "") +
-            "</code></td>" +
-            "<td>" +
-            badge +
-            "</td>" +
-            "<td><code>" +
-            escHtml(entry.action || "") +
-            "</code></td>" +
-            "<td>" +
-            escHtml(entry.msg || "") +
-            "</td>" +
-            "</tr>";
+          $tbody.append(
+            $("<tr>").append(
+              $("<td>").append($("<code>").text(entry.time || "")),
+              $("<td>").append($badge),
+              $("<td>").append($("<code>").text(entry.action || "")),
+              $("<td>").text(entry.msg || ""),
+            ),
+          );
         });
 
-        html += "</tbody></table>";
-        $("#iws-log-table-wrap").html(html);
+        $table.append($thead).append($tbody);
+        $("#iws-log-table-wrap").html($table);
       });
     }
 
@@ -253,7 +260,7 @@
           }
         })
         .fail(function () {
-          $result.text("Request failed.").addClass("error");
+          $result.text(i18n.requestFailed || "Request failed.").addClass("error");
         })
         .always(function () {
           $btn.prop("disabled", false);
@@ -268,7 +275,8 @@
     $("#iws-generate-fin-key").on("click", function () {
       if (
         $("#iws-fin-key-value").length &&
-        !confirm("This will invalidate the current key. Continue?")
+        // eslint-disable-next-line no-alert
+        !window.confirm("This will invalidate the current key. Continue?")
       ) {
         return;
       }
@@ -288,7 +296,7 @@
 
             // Show the key for copying.
             $("#iws-fin-key-full").val(res.data.key);
-            $("#iws-fin-key-reveal").slideDown(200);
+            $("#iws-fin-key-reveal").removeClass("iws-hidden").hide().slideDown(200);
 
             // Update the masked display.
             var masked =
@@ -298,13 +306,13 @@
               $("#iws-fin-key-value").text(masked);
             }
 
-            showNotice("success", "API key generated successfully.");
+            showNotice("success", i18n.keyGenerated || "API key generated successfully.");
           } else {
             $result.text(res.data.message).addClass("error");
           }
         })
         .fail(function () {
-          $result.text("Request failed.").addClass("error");
+          $result.text(i18n.requestFailed || "Request failed.").addClass("error");
         })
         .always(function () {
           $btn.prop("disabled", false);
@@ -318,20 +326,24 @@
 
     $(document).on("click", "#iws-copy-fin-key", function () {
       var $input = $("#iws-fin-key-full");
-      $input.select();
+      var keyValue = $input.val();
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText($input.val()).then(function () {
-          showNotice("success", "API key copied to clipboard.");
+        navigator.clipboard.writeText(keyValue).then(function () {
+          showNotice("success", i18n.keyCopied || "API key copied to clipboard.");
         });
       } else {
+        $input.select();
         document.execCommand("copy");
-        showNotice("success", "API key copied to clipboard.");
+        showNotice("success", i18n.keyCopied || "API key copied to clipboard.");
       }
     });
 
     /**
-     * Minimal HTML escaping.
+     * Minimal HTML escaping — used only for trusted server values in badge text.
+     *
+     * @param {string} str
+     * @return {string}
      */
     function escHtml(str) {
       var div = document.createElement("div");

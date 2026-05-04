@@ -68,6 +68,23 @@ final class Assets implements Registrable {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'iws_admin_nonce' ),
+				'i18n'    => array(
+					'requestFailed'   => __( 'Request failed. Please try again.', 'intercom-woo-sync' ),
+					'running'         => __( 'Running…', 'intercom-woo-sync' ),
+					'idle'            => __( 'Idle', 'intercom-woo-sync' ),
+					'bulkComplete'    => __( 'Bulk sync complete.', 'intercom-woo-sync' ),
+					'customersCount'  => __( 'customers processed so far', 'intercom-woo-sync' ),
+					'clearLogConfirm' => __( 'Clear the entire sync log?', 'intercom-woo-sync' ),
+					'noLogEntries'    => __( 'No log entries yet.', 'intercom-woo-sync' ),
+					'logColTime'      => __( 'Time', 'intercom-woo-sync' ),
+					'logColStatus'    => __( 'Status', 'intercom-woo-sync' ),
+					'logColAction'    => __( 'Action', 'intercom-woo-sync' ),
+					'logColMessage'   => __( 'Message', 'intercom-woo-sync' ),
+					'badgeOk'         => __( 'OK', 'intercom-woo-sync' ),
+					'badgeError'      => __( 'Error', 'intercom-woo-sync' ),
+					'keyCopied'       => __( 'API key copied to clipboard.', 'intercom-woo-sync' ),
+					'keyGenerated'    => __( 'API key generated successfully.', 'intercom-woo-sync' ),
+				),
 			)
 		);
 	}

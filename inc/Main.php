@@ -53,9 +53,28 @@ final class Main {
 	 */
 	private function setup(): void {
 		$this->load();
+		$this->declare_compatibility();
 
 		register_activation_hook( INTERCOM_WOO_SYNC_FILE, array( self::class, 'activate' ) );
 		register_deactivation_hook( INTERCOM_WOO_SYNC_FILE, array( self::class, 'deactivate' ) );
+	}
+
+	/**
+	 * Declare WooCommerce feature compatibility (HPOS, etc.).
+	 */
+	private function declare_compatibility(): void {
+		add_action(
+			'before_woocommerce_init',
+			static function (): void {
+				if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+					\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+						'custom_order_tables',
+						INTERCOM_WOO_SYNC_FILE,
+						true
+					);
+				}
+			}
+		);
 	}
 
 	/**

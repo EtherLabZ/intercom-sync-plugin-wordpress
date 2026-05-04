@@ -5,11 +5,17 @@
 	<!-- Scan the plugin root by default. -->
 	<file>.</file>
 
-	<!-- Exclude vendored and build artifacts. -->
+	<!-- Exclude vendored, build, and test artifacts. -->
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/build/*</exclude-pattern>
 	<exclude-pattern>*/languages/*</exclude-pattern>
+	<!--
+		Test files use PHPUnit conventions (camelCase methods, PSR-4 class names,
+		Mockery::mock() globals, Brain\Monkey function stubs) that intentionally
+		differ from WordPress Coding Standards.
+	-->
+	<exclude-pattern>*/tests/*</exclude-pattern>
 
 	<!-- Show progress, sniff codes, and colour. -->
 	<arg value="ps"/>

@@ -42,7 +42,7 @@ function constants(): void {
 	/**
 	 * Version of the plugin.
 	 */
-	define( 'INTERCOM_WOO_SYNC_VERSION', '1.2.2' );
+	define( 'INTERCOM_WOO_SYNC_VERSION', '1.3.0' );
 
 	/**
 	 * Root path to the plugin directory.
