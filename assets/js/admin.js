@@ -350,5 +350,374 @@
       div.appendChild(document.createTextNode(str));
       return div.innerHTML;
     }
+
+    /* ---------------------------------------------------------------
+       Live Stream — auto-refresh sync log with filters
+       --------------------------------------------------------------- */
+
+    var streamTimer = null;
+    var lastSeenTime = "";
+    var STREAM_INTERVAL = 5000;
+
+    function fetchAndRenderLog() {
+      var status = $("#iws-filter-status").val() || "all";
+      var actionQ = ($("#iws-filter-action").val() || "").trim();
+
+      ajaxPost("iws_get_log_filtered", {
+        status: status,
+        action_q: actionQ,
+        // Don't pass `since` — we always do a full re-render to handle filter changes.
+      }).done(function (res) {
+        if (!res || !res.success) return;
+        renderLogTable(res.data.log || []);
+      });
+    }
+
+    function renderLogTable(entries) {
+      var $wrap = $("#iws-log-table-wrap");
+
+      if (!entries.length) {
+        $wrap.html(
+          $("<p>")
+            .addClass("iws-empty")
+            .text(i18n.noLogEntries || "No log entries yet."),
+        );
+        lastSeenTime = "";
+        return;
+      }
+
+      var newestTime = entries[0].time || "";
+      var $table = $('<table class="widefat striped iws-log-table">');
+      var $thead = $("<thead>").append(
+        $("<tr>").append(
+          $("<th>").text(i18n.logColTime || "Time"),
+          $("<th>").text(i18n.logColStatus || "Status"),
+          $("<th>").text(i18n.logColAction || "Action"),
+          $("<th>").text(i18n.logColMessage || "Message"),
+        ),
+      );
+      var $tbody = $("<tbody>");
+
+      $.each(entries, function (i, entry) {
+        var isSuccess = "success" === entry.status;
+        var $badge = $("<span>")
+          .addClass(
+            "iws-badge " + (isSuccess ? "iws-badge--success" : "iws-badge--error"),
+          )
+          .text(isSuccess ? i18n.badgeOk || "OK" : i18n.badgeError || "Error");
+
+        var $row = $("<tr>").append(
+          $("<td>").append($("<code>").text(entry.time || "")),
+          $("<td>").append($badge),
+          $("<td>").append($("<code>").text(entry.action || "")),
+          $("<td>").text(entry.msg || ""),
+        );
+
+        // Highlight rows newer than the last seen timestamp (live append).
+        if (lastSeenTime && entry.time && entry.time > lastSeenTime) {
+          $row.addClass("iws-row--new");
+        }
+
+        $tbody.append($row);
+      });
+
+      $table.append($thead).append($tbody);
+      $wrap.html($table);
+
+      lastSeenTime = newestTime;
+    }
+
+    function startStream() {
+      stopStream();
+      $("#iws-stream-indicator")
+        .addClass("iws-stream-bar__live--on")
+        .find(".iws-stream-bar__live-label")
+        .text(i18n.live || "Live");
+      streamTimer = setInterval(fetchAndRenderLog, STREAM_INTERVAL);
+    }
+
+    function stopStream() {
+      if (streamTimer) {
+        clearInterval(streamTimer);
+        streamTimer = null;
+      }
+      $("#iws-stream-indicator")
+        .removeClass("iws-stream-bar__live--on")
+        .find(".iws-stream-bar__live-label")
+        .text(i18n.paused || "Paused");
+    }
+
+    // Filter change → re-render immediately + reset live highlight watermark.
+    $(document).on("change keyup", "#iws-filter-status, #iws-filter-action", function () {
+      lastSeenTime = "";
+      fetchAndRenderLog();
+    });
+
+    // Live toggle.
+    $(document).on("change", "#iws-stream-toggle", function () {
+      if (this.checked) startStream();
+      else stopStream();
+    });
+
+    // Pause when the browser tab is hidden, resume on visible.
+    $(document).on("visibilitychange", function () {
+      if (document.hidden) {
+        if (streamTimer) clearInterval(streamTimer);
+      } else if ($("#iws-stream-toggle").is(":checked")) {
+        startStream();
+      }
+    });
+
+    // When user activates the Live Stream tab, do an immediate fetch + start polling.
+    $(".iws-tabs__tab[data-tab='log']").on("click", function () {
+      lastSeenTime = "";
+      fetchAndRenderLog();
+      if ($("#iws-stream-toggle").is(":checked")) startStream();
+    });
+
+    // If page loads with the log tab already active, start streaming right away.
+    if ($("#iws-panel-log").hasClass("iws-tab-panel--active")) {
+      startStream();
+    }
+
+    /* ---------------------------------------------------------------
+       Fin Action toggles — confirmation prompts on the dangerous ones
+       --------------------------------------------------------------- */
+
+    $(document).on("change", ".iws-fin-action-toggle", function () {
+      if (!this.checked) return; // only warn when turning ON
+
+      var action = $(this).data("action");
+      var msg = "";
+      if (action === "cancel") msg = i18n.finCancelWarn;
+      else if (action === "refund") msg = i18n.finRefundWarn;
+      else if (action === "note") msg = i18n.finNoteWarn;
+
+      // eslint-disable-next-line no-alert
+      if (msg && !window.confirm(msg)) {
+        this.checked = false;
+      }
+    });
+
+    /* ---------------------------------------------------------------
+       Segments — rule builder
+       --------------------------------------------------------------- */
+
+    var segmentFields = (iwsAdmin.segments && iwsAdmin.segments.fields) || [];
+    var segmentOperators = (iwsAdmin.segments && iwsAdmin.segments.operators) || {};
+
+    function fieldType(fieldKey) {
+      for (var i = 0; i < segmentFields.length; i++) {
+        if (segmentFields[i].key === fieldKey) return segmentFields[i].type;
+      }
+      return "string";
+    }
+
+    function buildOperatorOptions(type, selected) {
+      var ops = segmentOperators[type] || [];
+      var $sel = $('<select class="iws-condition__op">');
+      $.each(ops, function (i, op) {
+        var $opt = $("<option>").attr("value", op.key).text(op.label);
+        if (op.key === selected) $opt.prop("selected", true);
+        $sel.append($opt);
+      });
+      return $sel;
+    }
+
+    function buildFieldSelect(selected) {
+      var $sel = $('<select class="iws-condition__field">');
+      $.each(segmentFields, function (i, f) {
+        var $opt = $("<option>").attr("value", f.key).text(f.label);
+        if (f.key === selected) $opt.prop("selected", true);
+        $sel.append($opt);
+      });
+      return $sel;
+    }
+
+    function buildCondition(cond) {
+      cond = cond || { field: segmentFields[0] && segmentFields[0].key, operator: "", value: "" };
+      var $row = $('<div class="iws-condition">');
+      var $field = buildFieldSelect(cond.field);
+      var type = fieldType(cond.field);
+      var $op = buildOperatorOptions(type, cond.operator);
+      var $val = $('<input type="text" class="iws-condition__value" />').val(cond.value || "");
+      var $remove = $('<button type="button" class="iws-condition__remove" aria-label="Remove">×</button>');
+
+      $field.on("change", function () {
+        var newType = fieldType($(this).val());
+        $op.replaceWith(buildOperatorOptions(newType, ""));
+        $op = $row.find(".iws-condition__op");
+      });
+
+      $remove.on("click", function () {
+        $row.remove();
+        refreshEmptyState();
+      });
+
+      $row.append($field).append($op).append($val).append($remove);
+      return $row;
+    }
+
+    function buildRule(rule) {
+      rule = rule || {
+        id: "",
+        name: "",
+        tag: "",
+        match: "all",
+        enabled: true,
+        conditions: [{}],
+      };
+
+      var $card = $('<div class="iws-rule">').data("ruleId", rule.id || "");
+      var $head = $('<div class="iws-rule__head">');
+
+      $head.append(
+        $('<input type="text" class="iws-rule__name">').attr(
+          "placeholder",
+          i18n.ruleName || "Rule name",
+        ).val(rule.name || ""),
+      );
+      $head.append(
+        $('<input type="text" class="iws-rule__tag">').attr(
+          "placeholder",
+          i18n.ruleTag || "Tag",
+        ).val(rule.tag || ""),
+      );
+
+      var $matchSel = $('<select class="iws-rule__match">');
+      $matchSel.append(
+        $("<option>").attr("value", "all").text(i18n.ruleMatchAll || "Match ALL conditions"),
+      );
+      $matchSel.append(
+        $("<option>").attr("value", "any").text(i18n.ruleMatchAny || "Match ANY condition"),
+      );
+      $matchSel.val(rule.match === "any" ? "any" : "all");
+      $head.append($matchSel);
+
+      var $enabled = $('<label class="iws-rule__enabled">').append(
+        $('<input type="checkbox" class="iws-rule__enabled-cb">').prop(
+          "checked",
+          rule.enabled !== false,
+        ),
+        " ",
+        $("<span>").text(i18n.ruleEnabled || "Enabled"),
+      );
+      $head.append($enabled);
+
+      var $delete = $('<button type="button" class="iws-rule__delete">').text(
+        i18n.deleteRule || "Delete",
+      );
+      $delete.on("click", function () {
+        if (window.confirm("Delete this rule?")) {
+          $card.remove();
+          refreshEmptyState();
+        }
+      });
+      $head.append($delete);
+
+      $card.append($head);
+
+      var $conds = $('<div class="iws-rule__conditions">');
+      var rConds = rule.conditions && rule.conditions.length ? rule.conditions : [{}];
+      $.each(rConds, function (i, c) {
+        $conds.append(buildCondition(c));
+      });
+      $card.append($conds);
+
+      var $addCond = $('<button type="button" class="iws-rule__add-cond">').text(
+        i18n.addCondition || "+ Add condition",
+      );
+      $addCond.on("click", function () {
+        $conds.append(buildCondition());
+      });
+      $card.append($addCond);
+
+      return $card;
+    }
+
+    function collectRules() {
+      var rules = [];
+      $("#iws-rules-list .iws-rule").each(function () {
+        var $card = $(this);
+        var conditions = [];
+        $card.find(".iws-condition").each(function () {
+          var $c = $(this);
+          conditions.push({
+            field: $c.find(".iws-condition__field").val(),
+            operator: $c.find(".iws-condition__op").val(),
+            value: $c.find(".iws-condition__value").val(),
+          });
+        });
+        rules.push({
+          id: $card.data("ruleId") || "",
+          name: $card.find(".iws-rule__name").val(),
+          tag: $card.find(".iws-rule__tag").val(),
+          match: $card.find(".iws-rule__match").val(),
+          enabled: $card.find(".iws-rule__enabled-cb").is(":checked"),
+          conditions: conditions,
+        });
+      });
+      return rules;
+    }
+
+    function refreshEmptyState() {
+      var $list = $("#iws-rules-list");
+      var hasRules = $list.find(".iws-rule").length > 0;
+      $list.find(".iws-rules-empty").toggle(!hasRules);
+    }
+
+    function loadInitialRules() {
+      var $list = $("#iws-rules-list");
+      if (!$list.length) return;
+      var raw = $list.attr("data-rules") || "[]";
+      var rules;
+      try {
+        rules = JSON.parse(raw);
+      } catch (e) {
+        rules = [];
+      }
+      if (!Array.isArray(rules) || rules.length === 0) {
+        refreshEmptyState();
+        return;
+      }
+      $list.find(".iws-rules-empty").remove();
+      $.each(rules, function (i, r) {
+        $list.append(buildRule(r));
+      });
+    }
+
+    $("#iws-add-rule").on("click", function () {
+      $("#iws-rules-list").find(".iws-rules-empty").remove();
+      $("#iws-rules-list").append(buildRule());
+    });
+
+    $("#iws-save-segments").on("click", function () {
+      var $btn = $(this);
+      var $spinner = $("#iws-segments-spinner");
+      var $result = $("#iws-segments-result");
+
+      $btn.prop("disabled", true);
+      $spinner.addClass("is-active");
+      $result.text("").removeClass("success error");
+
+      ajaxPost("iws_save_segments", { rules: JSON.stringify(collectRules()) })
+        .done(function (res) {
+          if (res.success) {
+            $result.text(i18n.segmentsSaved || "Segment rules saved.").addClass("success");
+            showNotice("success", i18n.segmentsSaved || "Segment rules saved.");
+          } else {
+            $result.text((res.data && res.data.message) || "Save failed.").addClass("error");
+          }
+        })
+        .fail(function () {
+          $result.text(i18n.requestFailed || "Request failed.").addClass("error");
+        })
+        .always(function () {
+          $btn.prop("disabled", false);
+          $spinner.removeClass("is-active");
+        });
+    });
+
+    loadInitialRules();
   }); // end document.ready
 })(jQuery);

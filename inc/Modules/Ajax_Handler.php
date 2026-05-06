@@ -30,9 +30,12 @@ final class Ajax_Handler implements Registrable {
 		add_action( 'wp_ajax_iws_bulk_sync', array( $this, 'bulk_sync' ) );
 		add_action( 'wp_ajax_iws_clear_log', array( $this, 'clear_log' ) );
 		add_action( 'wp_ajax_iws_get_log', array( $this, 'get_log' ) );
+		add_action( 'wp_ajax_iws_get_log_filtered', array( $this, 'get_log_filtered' ) );
 		add_action( 'wp_ajax_iws_bulk_sync_status', array( $this, 'bulk_sync_status' ) );
 		add_action( 'wp_ajax_iws_register_attributes', array( $this, 'register_attributes' ) );
 		add_action( 'wp_ajax_iws_generate_fin_key', array( $this, 'generate_fin_key' ) );
+		add_action( 'wp_ajax_iws_save_segments', array( $this, 'save_segments' ) );
+		add_action( 'wp_ajax_iws_run_cron_now', array( $this, 'run_cron_now' ) );
 	}
 
 	/**
@@ -267,6 +270,108 @@ final class Ajax_Handler implements Registrable {
 			array(
 				'message' => __( 'New API key generated. Copy it now — it won\'t be shown again in full.', 'intercom-woo-sync' ),
 				'key'     => $key,
+			)
+		);
+	}
+
+	/**
+	 * Return the sync log filtered by status and/or action substring,
+	 * with optional `since` timestamp for incremental polling.
+	 *
+	 * Posted params:
+	 *   status — 'all' | 'success' | 'error'    (default 'all')
+	 *   action — substring match against entry action  (default '')
+	 *   since  — ISO-ish "Y-m-d H:i:s" — only entries newer than this  (default '')
+	 */
+	public function get_log_filtered(): void {
+		$this->verify_request();
+
+		$status = sanitize_key( (string) ( $_POST['status'] ?? 'all' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$action = sanitize_text_field( wp_unslash( (string) ( $_POST['action_q'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$since  = sanitize_text_field( wp_unslash( (string) ( $_POST['since'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+		$log = get_option( 'iws_sync_log', array() );
+		if ( ! is_array( $log ) ) {
+			$log = array();
+		}
+
+		$filtered = array();
+		foreach ( $log as $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+
+			if ( 'all' !== $status && ( $entry['status'] ?? '' ) !== $status ) {
+				continue;
+			}
+
+			if ( '' !== $action && false === stripos( (string) ( $entry['action'] ?? '' ), $action ) ) {
+				continue;
+			}
+
+			if ( '' !== $since ) {
+				$entry_ts = strtotime( (string) ( $entry['time'] ?? '' ) );
+				$since_ts = strtotime( $since );
+				if ( false !== $entry_ts && false !== $since_ts && $entry_ts <= $since_ts ) {
+					continue;
+				}
+			}
+
+			$filtered[] = $entry;
+		}
+
+		wp_send_json_success(
+			array(
+				'log'       => $filtered,
+				'total'     => count( $log ),
+				'displayed' => count( $filtered ),
+				'now'       => current_time( 'mysql' ),
+			)
+		);
+	}
+
+	/**
+	 * Persist the segment rules submitted from the admin UI.
+	 *
+	 * The full rules array is sent (not a delta) — the UI builds it client-side.
+	 */
+	public function save_segments(): void {
+		$this->verify_request();
+
+		$raw   = isset( $_POST['rules'] ) ? wp_unslash( $_POST['rules'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- decoded JSON sanitized below.
+		$rules = is_string( $raw ) ? json_decode( $raw, true ) : $raw;
+
+		$sanitized = Segments::sanitize_rules( $rules );
+		update_option( 'iws_segment_rules', $sanitized, false );
+
+		wp_send_json_success(
+			array(
+				'message' => __( 'Segment rules saved.', 'intercom-woo-sync' ),
+				'rules'   => array_values( $sanitized ),
+			)
+		);
+	}
+
+	/**
+	 * Force-run all plugin crons immediately. Used by the cron-health banner
+	 * "Run cron now" button when wp-cron looks stuck.
+	 */
+	public function run_cron_now(): void {
+		$this->verify_request();
+
+		// Spawn cron and dispatch our scheduled hooks if they're due.
+		if ( function_exists( 'spawn_cron' ) ) {
+			spawn_cron();
+		}
+
+		do_action( 'iws_bulk_sync_cron' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ public hook prefix.
+		do_action( 'iws_cart_abandonment_cron' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ public hook prefix.
+
+		Cron_Health::stamp_run();
+
+		wp_send_json_success(
+			array(
+				'message' => __( 'Plugin crons dispatched. Refresh the page to clear the warning.', 'intercom-woo-sync' ),
 			)
 		);
 	}

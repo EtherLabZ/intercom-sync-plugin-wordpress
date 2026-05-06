@@ -163,6 +163,48 @@ final class Settings implements Registrable {
 			)
 		);
 
+		// Fin AI write actions — all default OFF (cancel/refund are dangerous).
+		register_setting(
+			self::GROUP,
+			'iws_fin_action_cancel_enabled',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'no',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_fin_action_refund_enabled',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'no',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
+			'iws_fin_action_note_enabled',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_yes_no' ),
+				'default'           => 'no',
+			)
+		);
+
+		// Segment rules — array of structured rule objects.
+		register_setting(
+			self::GROUP,
+			'iws_segment_rules',
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( \Etherlabz\Intercom_Woo_Sync\Modules\Segments::class, 'sanitize_rules' ),
+				'default'           => array(),
+			)
+		);
+
 		// -- Section ------------------------------------------------------
 
 		add_settings_section(

@@ -94,7 +94,21 @@ final class Customer_Sync implements Registrable {
 
 		$data = apply_filters( 'iws_contact_payload', $payload, $customer ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix; renaming would break downstream integrations.
 
-		$api->upsert_contact( $data );
+		$result = $api->upsert_contact( $data );
+
+		// Fire the post-sync hook so segment rules + future modules can react.
+		// We pass the resolved Intercom contact ID so listeners don't have to re-look it up.
+		if ( ! is_wp_error( $result ) && is_array( $result ) && ! empty( $result['id'] ) ) {
+			/**
+			 * Fires after a customer was successfully upserted to Intercom.
+			 *
+			 * @param string      $intercom_id Intercom contact ID returned by the API.
+			 * @param WC_Customer $customer    The WooCommerce customer.
+			 * @param array       $payload     The exact payload that was sent.
+			 */
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix.
+			do_action( 'iws_after_customer_sync', (string) $result['id'], $customer, $data );
+		}
 	}
 
 	/**

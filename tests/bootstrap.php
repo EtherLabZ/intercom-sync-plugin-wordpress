@@ -122,6 +122,44 @@ if ( ! class_exists( 'WC_Coupon' ) ) {
 		public function get_amount() { return 0; }
 	}
 }
+
+if ( ! class_exists( 'WC_Customer' ) ) {
+	class WC_Customer {
+		public function __construct( $id = 0 ) {}
+		public function get_id(): int { return 0; }
+		public function get_email(): string { return ''; }
+		public function get_first_name(): string { return ''; }
+		public function get_last_name(): string { return ''; }
+		public function get_billing_phone(): string { return ''; }
+		public function get_billing_city(): string { return ''; }
+		public function get_billing_country(): string { return ''; }
+		public function get_order_count(): int { return 0; }
+		public function get_total_spent() { return 0; }
+		public function get_date_created() { return null; }
+		public function get_last_order() { return null; }
+	}
+}
+
+if ( ! class_exists( 'WC_Order_Refund' ) ) {
+	class WC_Order_Refund {
+		public function get_id(): int { return 0; }
+	}
+}
+
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+	// Implements ArrayAccess so $request['id'] works in the production code.
+	class WP_REST_Request implements ArrayAccess {
+		public function get_param( $key ) { return null; }
+		public function get_header( $key ) { return ''; }
+		public function get_body_params() { return array(); }
+		public function get_query_params() { return array(); }
+		public function offsetExists( $offset ): bool { return false; }
+		#[\ReturnTypeWillChange]
+		public function offsetGet( $offset ) { return null; }
+		public function offsetSet( $offset, $value ): void {}
+		public function offsetUnset( $offset ): void {}
+	}
+}
 // phpcs:enable
 
 // Register the plugin's own PSR-4 autoloader so inc/ classes are available.

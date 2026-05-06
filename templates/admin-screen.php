@@ -64,9 +64,13 @@ if ( $iws_has_fin_key ) {
 			<span class="dashicons dashicons-superhero-alt"></span>
 			<?php esc_html_e( 'Fin / Data', 'intercom-woo-sync' ); ?>
 		</button>
+		<button class="iws-tabs__tab" data-tab="segments" role="tab" aria-selected="false">
+			<span class="dashicons dashicons-tag"></span>
+			<?php esc_html_e( 'Segments', 'intercom-woo-sync' ); ?>
+		</button>
 		<button class="iws-tabs__tab" data-tab="log" role="tab" aria-selected="false">
 			<span class="dashicons dashicons-list-view"></span>
-			<?php esc_html_e( 'Sync Log', 'intercom-woo-sync' ); ?>
+			<?php esc_html_e( 'Live Stream', 'intercom-woo-sync' ); ?>
 		</button>
 	</nav>
 
@@ -226,6 +230,71 @@ if ( $iws_has_fin_key ) {
 			</div>
 		</div>
 
+		<!-- Fin Action Endpoints (write actions — default off) -->
+		<div class="iws-card iws-fin-actions iws-mb-20">
+			<div class="iws-card__header">
+				<h2><?php esc_html_e( 'Fin Write Actions (Advanced)', 'intercom-woo-sync' ); ?></h2>
+			</div>
+			<p>
+				<?php esc_html_e( 'These endpoints let Fin take action on orders — not just look them up. They are powerful and irreversible. All toggles are off by default; enable only the actions you trust Fin to perform.', 'intercom-woo-sync' ); ?>
+			</p>
+
+			<form method="post" action="options.php">
+				<?php settings_fields( Settings::GROUP ); ?>
+
+				<div class="iws-fin-action-row">
+					<div class="iws-fin-action-row__meta">
+						<div class="iws-fin-action-row__name">POST /iws/v1/orders/{id}/cancel</div>
+						<div class="iws-fin-action-row__desc">
+							<?php esc_html_e( 'Allow Fin to cancel a customer order. Only orders in non-terminal states can be cancelled.', 'intercom-woo-sync' ); ?>
+						</div>
+						<span class="iws-fin-action-row__danger"><?php esc_html_e( 'Dangerous', 'intercom-woo-sync' ); ?></span>
+					</div>
+					<label class="iws-toggle">
+						<input type="checkbox" name="iws_fin_action_cancel_enabled" value="yes"
+							class="iws-fin-action-toggle" data-action="cancel"
+							<?php checked( get_option( 'iws_fin_action_cancel_enabled', 'no' ), 'yes' ); ?> />
+						<span class="iws-toggle__slider"></span>
+					</label>
+				</div>
+
+				<div class="iws-fin-action-row">
+					<div class="iws-fin-action-row__meta">
+						<div class="iws-fin-action-row__name">POST /iws/v1/orders/{id}/refund</div>
+						<div class="iws-fin-action-row__desc">
+							<?php esc_html_e( 'Allow Fin to issue a full or partial refund. Amount and reason are accepted as POST params.', 'intercom-woo-sync' ); ?>
+						</div>
+						<span class="iws-fin-action-row__danger"><?php esc_html_e( 'Dangerous', 'intercom-woo-sync' ); ?></span>
+					</div>
+					<label class="iws-toggle">
+						<input type="checkbox" name="iws_fin_action_refund_enabled" value="yes"
+							class="iws-fin-action-toggle" data-action="refund"
+							<?php checked( get_option( 'iws_fin_action_refund_enabled', 'no' ), 'yes' ); ?> />
+						<span class="iws-toggle__slider"></span>
+					</label>
+				</div>
+
+				<div class="iws-fin-action-row">
+					<div class="iws-fin-action-row__meta">
+						<div class="iws-fin-action-row__name">POST /iws/v1/customer/note</div>
+						<div class="iws-fin-action-row__desc">
+							<?php esc_html_e( 'Allow Fin to attach a private note to the customer\'s most recent order. Useful for handover from chat to human support.', 'intercom-woo-sync' ); ?>
+						</div>
+					</div>
+					<label class="iws-toggle">
+						<input type="checkbox" name="iws_fin_action_note_enabled" value="yes"
+							class="iws-fin-action-toggle" data-action="note"
+							<?php checked( get_option( 'iws_fin_action_note_enabled', 'no' ), 'yes' ); ?> />
+						<span class="iws-toggle__slider"></span>
+					</label>
+				</div>
+
+				<div class="iws-actions iws-mt-16">
+					<?php submit_button( __( 'Save Fin Action Settings', 'intercom-woo-sync' ), 'primary', 'submit', false ); ?>
+				</div>
+			</form>
+		</div>
+
 		<!-- Intercom Custom Action Setup Guide -->
 		<div class="iws-card">
 			<div class="iws-card__header">
@@ -255,15 +324,69 @@ if ( $iws_has_fin_key ) {
 
 	</div>
 
-	<!-- Tab: Sync Log -->
+	<!-- Tab: Segments -->
+	<div class="iws-tab-panel" id="iws-panel-segments" role="tabpanel">
+		<div class="iws-card iws-mb-20">
+			<div class="iws-card__header">
+				<h2><?php esc_html_e( 'Smart Segment Rules', 'intercom-woo-sync' ); ?></h2>
+				<button type="button" id="iws-add-rule" class="button button-secondary">
+					<span class="dashicons dashicons-plus-alt2"></span>
+					<?php esc_html_e( 'Add Rule', 'intercom-woo-sync' ); ?>
+				</button>
+			</div>
+			<p>
+				<?php esc_html_e( 'Define rules that auto-tag customers in Intercom every time they sync. Example: tag a customer as "vip" when they have made 5+ orders and spent more than $200. Tags created here are applied via the Intercom Tags API and removed by your own Intercom rules — this side only adds.', 'intercom-woo-sync' ); ?>
+			</p>
+
+			<div id="iws-rules-list"
+				data-rules="<?php echo esc_attr( (string) wp_json_encode( array_values( (array) get_option( 'iws_segment_rules', array() ) ) ) ); ?>">
+				<p class="iws-empty iws-rules-empty"><?php esc_html_e( 'No rules yet. Click "Add Rule" to create one.', 'intercom-woo-sync' ); ?></p>
+			</div>
+
+			<div class="iws-actions iws-mt-16">
+				<button type="button" id="iws-save-segments" class="button button-primary">
+					<span class="dashicons dashicons-saved"></span>
+					<?php esc_html_e( 'Save All Rules', 'intercom-woo-sync' ); ?>
+				</button>
+				<span id="iws-segments-spinner" class="spinner"></span>
+				<span id="iws-segments-result" class="iws-inline-result"></span>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tab: Live Stream / Sync Log -->
 	<div class="iws-tab-panel" id="iws-panel-log" role="tabpanel">
 		<div class="iws-card">
 			<div class="iws-card__header">
-				<h2><?php esc_html_e( 'Recent Sync Activity', 'intercom-woo-sync' ); ?></h2>
+				<h2><?php esc_html_e( 'Live Event Stream', 'intercom-woo-sync' ); ?></h2>
 				<button type="button" id="iws-clear-log" class="button button-link-delete">
 					<span class="dashicons dashicons-trash"></span>
 					<?php esc_html_e( 'Clear Log', 'intercom-woo-sync' ); ?>
 				</button>
+			</div>
+
+			<!-- Filter / live-stream control bar -->
+			<div class="iws-stream-bar">
+				<label>
+					<?php esc_html_e( 'Status:', 'intercom-woo-sync' ); ?>
+					<select id="iws-filter-status">
+						<option value="all"><?php esc_html_e( 'All', 'intercom-woo-sync' ); ?></option>
+						<option value="success"><?php esc_html_e( 'Success', 'intercom-woo-sync' ); ?></option>
+						<option value="error"><?php esc_html_e( 'Error', 'intercom-woo-sync' ); ?></option>
+					</select>
+				</label>
+				<label>
+					<?php esc_html_e( 'Action contains:', 'intercom-woo-sync' ); ?>
+					<input type="text" id="iws-filter-action" placeholder="<?php esc_attr_e( 'e.g. /contacts', 'intercom-woo-sync' ); ?>" />
+				</label>
+				<label>
+					<input type="checkbox" id="iws-stream-toggle" checked />
+					<?php esc_html_e( 'Auto-refresh', 'intercom-woo-sync' ); ?>
+				</label>
+				<span id="iws-stream-indicator" class="iws-stream-bar__live iws-stream-bar__live--on">
+					<span class="iws-stream-bar__live-dot"></span>
+					<span class="iws-stream-bar__live-label"><?php esc_html_e( 'Live', 'intercom-woo-sync' ); ?></span>
+				</span>
 			</div>
 
 			<div id="iws-log-table-wrap">

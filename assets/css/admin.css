@@ -679,3 +679,251 @@
   font-size: 11px;
   color: var(--iws-text-muted);
 }
+
+/* ----------------------------------------------------------------------
+ * Live Stream filter bar
+ * ---------------------------------------------------------------------- */
+.iws-stream-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--iws-surface-muted);
+  border: 1px solid var(--iws-border);
+  border-radius: var(--iws-radius-md);
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+
+.iws-stream-bar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--iws-text-secondary);
+}
+
+.iws-stream-bar select,
+.iws-stream-bar input[type="text"] {
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid var(--iws-border-strong);
+  border-radius: var(--iws-radius-sm);
+  background: #fff;
+}
+
+.iws-stream-bar input[type="text"] {
+  width: 180px;
+}
+
+.iws-stream-bar__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--iws-text-muted);
+  margin-left: auto;
+}
+
+.iws-stream-bar__live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+.iws-stream-bar__live--on .iws-stream-bar__live-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+  animation: iws-pulse 1.6s infinite;
+}
+
+.iws-stream-bar__live--on {
+  color: #047857;
+}
+
+@keyframes iws-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+  70%  { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+
+/* Highlight a row briefly when it arrives via polling. */
+.iws-log-table tbody tr.iws-row--new {
+  animation: iws-flash 1.4s ease-out;
+}
+
+@keyframes iws-flash {
+  0%   { background: rgba(253, 201, 164, 0.5); }
+  100% { background: transparent; }
+}
+
+/* ----------------------------------------------------------------------
+ * Segments tab — rule editor
+ * ---------------------------------------------------------------------- */
+.iws-rule {
+  background: #fff;
+  border: 1px solid var(--iws-border);
+  border-radius: var(--iws-radius-md);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.iws-rule__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.iws-rule__head input[type="text"] {
+  font-size: 13px;
+  padding: 5px 9px;
+  border: 1px solid var(--iws-border-strong);
+  border-radius: var(--iws-radius-sm);
+}
+
+.iws-rule__name {
+  width: 200px;
+}
+
+.iws-rule__tag {
+  width: 160px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.iws-rule__delete {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #b91c1c;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--iws-radius-sm);
+}
+
+.iws-rule__delete:hover {
+  border-color: #fecaca;
+  background: #fee2e2;
+}
+
+.iws-rule__match {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--iws-text-muted);
+}
+
+.iws-rule__conditions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.iws-condition {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.iws-condition select,
+.iws-condition input[type="text"] {
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid var(--iws-border-strong);
+  border-radius: var(--iws-radius-sm);
+  background: #fff;
+}
+
+.iws-condition__field   { width: 180px; }
+.iws-condition__op      { width: 130px; }
+.iws-condition__value   { width: 140px; }
+
+.iws-condition__remove {
+  background: transparent;
+  border: none;
+  color: var(--iws-text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 6px;
+}
+
+.iws-condition__remove:hover { color: #b91c1c; }
+
+.iws-rule__add-cond {
+  background: transparent;
+  border: 1px dashed var(--iws-border-strong);
+  color: var(--iws-text-secondary);
+  padding: 5px 10px;
+  border-radius: var(--iws-radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.iws-rule__add-cond:hover {
+  border-color: var(--iws-brand-orange);
+  color: var(--iws-brand-orange);
+}
+
+/* ----------------------------------------------------------------------
+ * Fin Actions card — danger toggles
+ * ---------------------------------------------------------------------- */
+.iws-fin-actions {
+  border: 1px solid rgba(239, 114, 64, 0.4);
+  background: rgba(253, 201, 164, 0.10);
+}
+
+.iws-fin-actions .iws-card__header h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iws-fin-actions .iws-card__header h2::before {
+  content: "⚠";
+  color: var(--iws-brand-orange);
+}
+
+.iws-fin-action-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--iws-border);
+  gap: 16px;
+}
+
+.iws-fin-action-row:last-child {
+  border-bottom: none;
+}
+
+.iws-fin-action-row__meta { flex: 1; }
+
+.iws-fin-action-row__name {
+  font-weight: 600;
+  color: var(--iws-text);
+  margin-bottom: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+}
+
+.iws-fin-action-row__desc {
+  color: var(--iws-text-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.iws-fin-action-row__danger {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  background: rgba(239, 114, 64, 0.15);
+  color: var(--iws-brand-brown);
+  border-radius: var(--iws-radius-full);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}

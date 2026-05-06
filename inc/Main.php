@@ -39,6 +39,9 @@ final class Main {
 		Modules\Cart_Abandonment::class,
 		Modules\Subscription_Events::class,
 		Modules\Tag_Manager::class,
+		Modules\Segments::class,
+		Modules\Cron_Health::class,
+		Modules\Fin_Actions::class,
 	);
 
 	/**
@@ -112,6 +115,13 @@ final class Main {
 		add_option( 'iws_enable_purchase_tags', 'no' );
 		add_option( 'iws_sync_guest_checkout', 'yes' );
 		add_option( 'iws_pending_carts', array() );
+
+		// New in 1.5: segments + Fin write-action toggles + cron-health stamp.
+		add_option( 'iws_segment_rules', array() );
+		add_option( 'iws_fin_action_cancel_enabled', 'no' );
+		add_option( 'iws_fin_action_refund_enabled', 'no' );
+		add_option( 'iws_fin_action_note_enabled', 'no' );
+		add_option( 'iws_last_cron_run', 0 );
 
 		// Schedule the bulk-sync cron if it doesn't exist.
 		if ( ! wp_next_scheduled( 'iws_bulk_sync_cron' ) ) {
