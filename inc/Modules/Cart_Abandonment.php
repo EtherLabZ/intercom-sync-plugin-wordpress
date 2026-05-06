@@ -84,7 +84,9 @@ final class Cart_Abandonment implements Registrable {
 				continue;
 			}
 
-			if ( ! empty( $entry['fired'] ) ) {
+			// Strict bool check — guard against the classic "string 'false' is truthy"
+			// trap if the option ever carries a non-boolean payload (e.g. data import).
+			if ( true === ( $entry['fired'] ?? false ) ) {
 				continue;
 			}
 
