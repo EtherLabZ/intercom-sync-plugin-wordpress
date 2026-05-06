@@ -5,12 +5,52 @@
  */
 
 /* ----------------------------------------------------------------
+   Brand tokens (scoped to .iws-wrap so they cannot leak into wp-admin)
+   ---------------------------------------------------------------- */
+
+.iws-wrap {
+  /* Sunset palette (subset — only what the admin actually uses). */
+  --iws-brand-black: #080605;
+  --iws-brand-brown: #581c03;
+  --iws-brand-orange: #ef7240;
+  --iws-brand-peach: #fdc9a4;
+  --iws-brand-cream: #f9f6f3;
+
+  /* Text + neutrals from the brand system. */
+  --iws-text: #1d1e22;
+  --iws-text-secondary: #4b3b33;
+  --iws-text-muted: #7a6a62;
+
+  /* Borders + surfaces. */
+  --iws-border: rgba(75, 59, 51, 0.18);
+  --iws-border-strong: rgba(75, 59, 51, 0.32);
+  --iws-surface: #ffffff;
+  --iws-surface-muted: #f9f5f3;
+
+  /* Accent gradient — subset of the brand gradient (dark → brown only).
+     The full sunset is too loud for an admin chrome; we anchor on the dark end. */
+  --iws-header-gradient: linear-gradient(
+    135deg,
+    var(--iws-brand-black) 0%,
+    var(--iws-brand-brown) 100%
+  );
+
+  /* Border radii — match website tokens. */
+  --iws-radius-sm: 0.375rem;
+  --iws-radius-md: 0.5rem;
+  --iws-radius-lg: 0.75rem;
+  --iws-radius-xl: 1rem;
+  --iws-radius-full: 9999px;
+}
+
+/* ----------------------------------------------------------------
    Layout
    ---------------------------------------------------------------- */
 
 .iws-wrap {
   max-width: 860px;
   margin: 20px auto 40px;
+  color: var(--iws-text);
 }
 
 /* ----------------------------------------------------------------
@@ -18,10 +58,10 @@
    ---------------------------------------------------------------- */
 
 .iws-header {
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  background: var(--iws-header-gradient);
   color: #fff;
   padding: 28px 32px;
-  border-radius: 12px;
+  border-radius: var(--iws-radius-lg);
   margin-bottom: 24px;
 }
 
@@ -41,23 +81,24 @@
 
 .iws-header__icon {
   font-size: 28px;
-  color: #818cf8;
+  color: var(--iws-brand-orange);
 }
 
 .iws-header__version {
-  background: rgba(129, 140, 248, 0.2);
-  color: #a5b4fc;
+  background: rgba(253, 201, 164, 0.18);
+  color: var(--iws-brand-peach);
   font-size: 11px;
   font-weight: 600;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: var(--iws-radius-full);
   letter-spacing: 0.5px;
 }
 
 .iws-header__desc {
-  color: #9ca3af;
+  color: var(--iws-brand-peach);
   margin: 8px 0 0;
   font-size: 13.5px;
+  opacity: 0.9;
 }
 
 /* ----------------------------------------------------------------
@@ -68,7 +109,7 @@
   display: flex;
   gap: 4px;
   margin-bottom: 0;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--iws-border);
   padding-bottom: 0;
 }
 
@@ -79,7 +120,7 @@
   padding: 10px 18px;
   border: none;
   background: transparent;
-  color: #6b7280;
+  color: var(--iws-text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -91,12 +132,12 @@
 }
 
 .iws-tabs__tab:hover {
-  color: #374151;
+  color: var(--iws-text-secondary);
 }
 
 .iws-tabs__tab--active {
-  color: #4f46e5;
-  border-bottom-color: #4f46e5;
+  color: var(--iws-brand-orange);
+  border-bottom-color: var(--iws-brand-orange);
 }
 
 .iws-tabs__tab .dashicons {
@@ -124,9 +165,9 @@
    ---------------------------------------------------------------- */
 
 .iws-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  background: var(--iws-surface);
+  border: 1px solid var(--iws-border);
+  border-radius: var(--iws-radius-lg);
   padding: 24px 28px;
 }
 
@@ -140,6 +181,7 @@
 .iws-card__header h2 {
   margin: 0;
   font-size: 16px;
+  color: var(--iws-text);
 }
 
 /* ----------------------------------------------------------------
@@ -150,7 +192,7 @@
   padding: 16px 10px 16px 0;
   font-weight: 500;
   font-size: 13px;
-  color: #374151;
+  color: var(--iws-text-secondary);
   width: 200px;
 }
 
@@ -162,6 +204,14 @@
 .iws-tab-panel form .form-table input[type="text"] {
   width: 100%;
   max-width: 420px;
+}
+
+.iws-tab-panel form .form-table input[type="text"]:focus,
+.iws-tab-panel form .form-table input[type="password"]:focus,
+.iws-tab-panel form .form-table input[type="number"]:focus {
+  border-color: var(--iws-brand-orange);
+  box-shadow: 0 0 0 1px var(--iws-brand-orange);
+  outline: 2px solid transparent;
 }
 
 /* ----------------------------------------------------------------
@@ -187,8 +237,8 @@
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background: #d1d5db;
-  border-radius: 999px;
+  background: #d6d3d1;
+  border-radius: var(--iws-radius-full);
   transition: background 0.2s;
 }
 
@@ -205,7 +255,7 @@
 }
 
 .iws-toggle input:checked + .iws-toggle__slider {
-  background: #4f46e5;
+  background: var(--iws-brand-orange);
 }
 
 .iws-toggle input:checked + .iws-toggle__slider::before {
@@ -231,6 +281,25 @@
   margin-right: 2px;
 }
 
+/* Brand-tinted primary button (overrides core .button-primary inside our screen). */
+.iws-tab-panel .button-primary,
+.iws-actions .button-primary {
+  background: var(--iws-brand-orange);
+  border-color: var(--iws-brand-orange);
+  color: #fff;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+.iws-tab-panel .button-primary:hover,
+.iws-tab-panel .button-primary:focus,
+.iws-actions .button-primary:hover,
+.iws-actions .button-primary:focus {
+  background: var(--iws-brand-brown);
+  border-color: var(--iws-brand-brown);
+  color: #fff;
+}
+
 .iws-inline-result {
   font-size: 13px;
   font-weight: 500;
@@ -253,7 +322,7 @@
   align-items: center;
   gap: 4px;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--iws-radius-full);
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -271,13 +340,13 @@
 }
 
 .iws-badge--running {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(253, 201, 164, 0.45);
+  color: var(--iws-brand-brown);
 }
 
 .iws-badge--idle {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--iws-surface-muted);
+  color: var(--iws-text-muted);
 }
 
 /* ----------------------------------------------------------------
@@ -293,7 +362,7 @@
 
 .iws-bulk-offset {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--iws-text-muted);
 }
 
 /* ----------------------------------------------------------------
@@ -310,7 +379,7 @@
    ---------------------------------------------------------------- */
 
 .iws-log-table {
-  border-radius: 8px;
+  border-radius: var(--iws-radius-md);
   overflow: hidden;
 }
 
@@ -318,20 +387,21 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #6b7280;
+  color: var(--iws-text-muted);
   font-weight: 600;
 }
 
 .iws-log-table td code {
-  background: #f3f4f6;
+  background: var(--iws-surface-muted);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--iws-radius-sm);
   font-size: 12px;
+  color: var(--iws-text-secondary);
 }
 
 .iws-empty {
   text-align: center;
-  color: #9ca3af;
+  color: var(--iws-text-muted);
   padding: 32px;
 }
 
@@ -392,7 +462,7 @@
 
 .iws-notice {
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: var(--iws-radius-md);
   margin-bottom: 16px;
   font-size: 13px;
   font-weight: 500;
@@ -422,12 +492,13 @@
 }
 
 .iws-attr-list code {
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--iws-brand-cream);
+  color: var(--iws-brand-brown);
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--iws-radius-sm);
   font-size: 12px;
   font-weight: 500;
+  border: 1px solid var(--iws-border);
 }
 
 .iws-endpoint-table {
@@ -438,7 +509,7 @@
 
 .iws-endpoint-table td {
   padding: 8px 12px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--iws-border);
   font-size: 13px;
 }
 
@@ -448,17 +519,18 @@
 
 .iws-endpoint-label {
   font-weight: 500;
-  color: #374151;
+  color: var(--iws-text-secondary);
   white-space: nowrap;
   width: 140px;
 }
 
 .iws-endpoint-table code {
-  background: #f3f4f6;
+  background: var(--iws-surface-muted);
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: var(--iws-radius-sm);
   font-size: 12px;
   word-break: break-all;
+  color: var(--iws-text-secondary);
 }
 
 .iws-key-display {
@@ -469,28 +541,29 @@
 }
 
 .iws-key-display code {
-  background: #f3f4f6;
+  background: var(--iws-surface-muted);
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: var(--iws-radius-md);
   font-size: 13px;
   letter-spacing: 0.3px;
+  color: var(--iws-text-secondary);
 }
 
 .iws-hint {
-  color: #9ca3af;
+  color: var(--iws-text-muted);
   font-size: 13px;
   font-style: italic;
 }
 
 .iws-key-reveal {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 8px;
+  background: rgba(253, 201, 164, 0.22);
+  border: 1px solid rgba(239, 114, 64, 0.35);
+  border-radius: var(--iws-radius-md);
   padding: 16px;
 }
 
 .iws-key-reveal__warn {
-  color: #92400e;
+  color: var(--iws-brand-brown);
   font-weight: 500;
   font-size: 13px;
   margin: 0 0 10px;
@@ -500,7 +573,7 @@
 }
 
 .iws-key-reveal__warn .dashicons {
-  color: #d97706;
+  color: var(--iws-brand-orange);
   font-size: 18px;
   width: 18px;
   height: 18px;
@@ -519,7 +592,7 @@
   padding-left: 20px;
   line-height: 1.8;
   font-size: 13px;
-  color: #374151;
+  color: var(--iws-text-secondary);
 }
 
 .iws-setup-steps li {
@@ -527,10 +600,11 @@
 }
 
 .iws-setup-steps code {
-  background: #f3f4f6;
+  background: var(--iws-surface-muted);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--iws-radius-sm);
   font-size: 12px;
+  color: var(--iws-text-secondary);
 }
 
 /* ----------------------------------------------------------------------
@@ -539,15 +613,15 @@
 .iws-footer {
   margin: 32px 0 12px;
   padding: 14px 18px;
-  background: #fafafa;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  background: var(--iws-surface-muted);
+  border: 1px solid var(--iws-border);
+  border-radius: var(--iws-radius-md);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--iws-text-muted);
 }
 
 .iws-footer__text {
@@ -557,7 +631,7 @@
 }
 
 .iws-footer__heart {
-  color: #ef4444;
+  color: var(--iws-brand-orange);
   font-size: 14px;
   line-height: 1;
   margin: 0 2px;
@@ -565,32 +639,32 @@
 
 .iws-footer__brand {
   font-weight: 600;
-  color: #4338ca;
+  color: var(--iws-brand-brown);
   text-decoration: none;
   letter-spacing: 0.2px;
 }
 
 .iws-footer__brand:hover,
 .iws-footer__brand:focus {
-  color: #3730a3;
+  color: var(--iws-brand-orange);
   text-decoration: underline;
 }
 
 .iws-footer__sep {
-  color: #d1d5db;
+  color: var(--iws-border-strong);
 }
 
 .iws-footer__link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #6b7280;
+  color: var(--iws-text-muted);
   text-decoration: none;
 }
 
 .iws-footer__link:hover,
 .iws-footer__link:focus {
-  color: #4338ca;
+  color: var(--iws-brand-orange);
 }
 
 .iws-footer__link .dashicons {
@@ -603,5 +677,5 @@
 .iws-footer__version {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--iws-text-muted);
 }
