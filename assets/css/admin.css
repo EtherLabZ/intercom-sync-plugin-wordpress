@@ -80,7 +80,12 @@
 }
 
 .iws-header__icon {
+  /* Override dashicons base 20×20 box so the 28px glyph isn't clipped
+     and lines up centered with the h1 inside the flex row. */
   font-size: 28px;
+  width: 28px;
+  height: 28px;
+  line-height: 1;
   color: var(--iws-brand-orange);
 }
 
@@ -144,7 +149,10 @@
   font-size: 16px;
   width: 16px;
   height: 16px;
-  line-height: 16px;
+  /* line-height:1 keeps the glyph centered inside the inline-flex tab; the
+     fixed 16px line-height we used previously left a 1–2px low-bias on
+     macOS Chrome because the dashicons font's intrinsic ascent != descent. */
+  line-height: 1;
 }
 
 /* ----------------------------------------------------------------
@@ -273,12 +281,22 @@
   margin-top: 8px;
 }
 
+/* Lay buttons out as inline-flex so the icon and label share a single
+   centered baseline, regardless of WP core's button line-height. The old
+   approach (line-height: 28px on the icon) only worked at one button size
+   and drifted whenever the WP admin font scaled. */
+.iws-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .iws-actions .button .dashicons {
   font-size: 16px;
   width: 16px;
   height: 16px;
-  line-height: 28px;
-  margin-right: 2px;
+  line-height: 1;
+  margin-right: 0;
 }
 
 /* Brand-tinted primary button (overrides core .button-primary inside our screen). */
@@ -327,6 +345,15 @@
   font-weight: 600;
   letter-spacing: 0.3px;
   line-height: 1.4;
+}
+
+/* Dashicons inside badges (e.g. the spinning "Running…" pill) default to a
+   20px glyph and dwarf the 11.5px label. Size them to the badge text. */
+.iws-badge .dashicons {
+  font-size: 13px;
+  width: 13px;
+  height: 13px;
+  line-height: 1;
 }
 
 .iws-badge--success {
@@ -429,14 +456,16 @@
   display: none;
 }
 
-/* Lock icon beside encrypted-token description */
+/* Lock icon beside encrypted-token description (rendered inline with text,
+   not in a flex container — uses vertical-align to sit on the cap-line). */
 .iws-lock-icon {
+  display: inline-block;
   color: #059669;
   font-size: 14px;
   width: 14px;
   height: 14px;
-  line-height: 14px;
-  vertical-align: middle;
+  line-height: 1;
+  vertical-align: -2px;
 }
 
 /* Sub-list inside setup steps */
@@ -577,6 +606,7 @@
   font-size: 18px;
   width: 18px;
   height: 18px;
+  line-height: 1;
 }
 
 .iws-key-reveal input[type="text"] {
@@ -671,7 +701,7 @@
   font-size: 14px;
   width: 14px;
   height: 14px;
-  line-height: 14px;
+  line-height: 1;
 }
 
 .iws-footer__version {
@@ -884,6 +914,12 @@
 .iws-fin-actions .iws-card__header h2::before {
   content: "⚠";
   color: var(--iws-brand-orange);
+  /* The unicode warning glyph has different vertical metrics than the
+     surrounding text on different OSes (especially Windows + Linux), so we
+     pin a fixed line-height and use inline-flex on the parent h2 to center
+     it against the heading text. */
+  font-size: 16px;
+  line-height: 1;
 }
 
 .iws-fin-action-row {
