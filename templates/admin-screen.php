@@ -47,7 +47,17 @@ if ( $iws_has_fin_key ) {
 		</p>
 	</div>
 
-	<!-- Notices -->
+	<?php
+	// WordPress relocates admin_notices to immediately before the first
+	// element matching .wp-header-end (or the first <h1> in the page if no
+	// marker is found). Our <h1> is nested inside the brand header, so
+	// without this marker third-party notices slot themselves between the
+	// title and the version pill / description, which looks broken.
+	// The <hr> is hidden via CSS — its only job is to be the placement target.
+	?>
+	<hr class="wp-header-end" />
+
+	<!-- Notices (our own AJAX-driven container — separate from WP admin_notices) -->
 	<div id="iws-notices"></div>
 
 	<!-- Tab navigation -->

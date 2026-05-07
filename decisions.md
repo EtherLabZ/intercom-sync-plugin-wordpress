@@ -32,3 +32,15 @@ Decided on a two-channel persistence model in `assets/js/admin.js`:
 On load: hash wins (so deep links work), localStorage is the fallback, otherwise the server-rendered default ("settings") stays active. `activateTab()` is defensive — unknown slugs (e.g. stale storage from a renamed tab) are ignored and we fall through to the default.
 
 Why both channels rather than just localStorage: localStorage alone breaks shareability ("here's the link to the Segments tab" wouldn't open on that tab). And hash alone breaks form submits. Belt-and-braces for the cost of ~30 lines.
+
+## 2026-05-08
+
+### 05:02 · Admin UI · Add `wp-header-end` marker so admin_notices land below our brand header
+
+WordPress's admin chrome runs JS on every admin page that hoists any `.notice` element to a canonical location: immediately before the first element with class `wp-header-end`, or — if no marker exists — immediately after the first `<h1>` it finds. Our `<h1>` lives inside `.iws-header` (the brand gradient block), with the version pill and description rendered after it. Without a marker, third-party `admin_notices` (e.g. WooCommerce update notices, plugin-update prompts) were getting injected between our title and the version pill, splitting the brand header in half.
+
+Decided to render a literal `<hr class="wp-header-end" />` immediately after the brand header div, hidden via CSS (visibility:hidden + height:0 + zeroed margin/border, *not* display:none — some WP versions skip display:none nodes when scanning for the marker).
+
+Why a real `<hr>` rather than slapping the class on the `<h1>` directly: the brand header treats the `<h1>` as a flex child alongside the icon and version pill. Adding `wp-header-end` to it would turn our visual title into the literal placement target, but it would also pull notices into the gradient block (above the description). A separate sibling `<hr>` lets the placement target sit *outside* the brand chrome, so notices land in the natural admin spot below it.
+
+Convention to remember: any custom admin screen with a custom-styled header **must** include a `wp-header-end` marker after the chrome ends. Otherwise WP's notice-relocation will fight the design.

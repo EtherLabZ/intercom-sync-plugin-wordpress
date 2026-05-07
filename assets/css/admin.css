@@ -106,6 +106,17 @@
   opacity: 0.9;
 }
 
+/* WP notice-placement marker. We render a real <hr> in the template so
+   WordPress relocates admin_notices below our brand header, not into it.
+   The element itself must stay in the DOM to be a valid placement target,
+   so we hide it without using display:none (which some WP versions skip). */
+.iws-wrap .wp-header-end {
+  visibility: hidden;
+  height: 0;
+  margin: 0;
+  border: 0;
+}
+
 /* ----------------------------------------------------------------
    Tabs
    ---------------------------------------------------------------- */
