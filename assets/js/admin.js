@@ -12,20 +12,67 @@
   $(document).ready(function () {
     /* ---------------------------------------------------------------
 	   Tab navigation
+	   ---------------------------------------------------------------
+	   The active tab must survive (a) settings-form submits, which round-trip
+	   through options.php and lose any URL fragment, and (b) plain page
+	   reloads. We persist via two channels:
+	     - URL hash (#tab-log) so the tab is shareable / bookmarkable
+	     - localStorage as a fallback, since form submits drop the hash
+	   On load: hash wins, then localStorage, then the server's default.
 	   --------------------------------------------------------------- */
 
-    $(".iws-tabs__tab").on("click", function () {
-      var tab = $(this).data("tab");
+    var STORAGE_KEY = "iws_active_tab";
 
-      // Update tabs.
+    function activateTab(tab) {
+      var $btn = $(".iws-tabs__tab[data-tab='" + tab + "']");
+      var $panel = $("#iws-panel-" + tab);
+      // Defensive: ignore unknown tab slugs (e.g. stale localStorage from an
+      // older release that had a tab we've since renamed).
+      if (!$btn.length || !$panel.length) return false;
+
       $(".iws-tabs__tab")
         .removeClass("iws-tabs__tab--active")
         .attr("aria-selected", "false");
-      $(this).addClass("iws-tabs__tab--active").attr("aria-selected", "true");
+      $btn.addClass("iws-tabs__tab--active").attr("aria-selected", "true");
 
-      // Update panels.
       $(".iws-tab-panel").removeClass("iws-tab-panel--active");
-      $("#iws-panel-" + tab).addClass("iws-tab-panel--active");
+      $panel.addClass("iws-tab-panel--active");
+      return true;
+    }
+
+    function persistTab(tab) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, tab);
+      } catch (e) {
+        /* private mode / quota — non-fatal, hash still works */
+      }
+      // Update the hash without scrolling or pushing a history entry.
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, "", "#tab-" + tab);
+      } else {
+        window.location.hash = "tab-" + tab;
+      }
+    }
+
+    function readPersistedTab() {
+      var fromHash = (window.location.hash || "").match(/^#tab-([a-z0-9_-]+)$/i);
+      if (fromHash) return fromHash[1];
+      try {
+        return window.localStorage.getItem(STORAGE_KEY) || "";
+      } catch (e) {
+        return "";
+      }
+    }
+
+    // Restore the persisted tab on page load. If nothing is persisted, the
+    // server-rendered default ("settings") stays active.
+    var persisted = readPersistedTab();
+    if (persisted) activateTab(persisted);
+
+    $(".iws-tabs__tab").on("click", function () {
+      var tab = $(this).data("tab");
+      if (!activateTab(tab)) return;
+      persistTab(tab);
 
       // Refresh log when switching to the log tab.
       if ("log" === tab) {

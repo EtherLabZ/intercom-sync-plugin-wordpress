@@ -19,3 +19,16 @@ The 13:40 fix above scoped the inline-flex button treatment to `.iws-actions .bu
 Generalised the selector to `.iws-wrap .button` (and `.iws-wrap .button .dashicons`). Inline-flex on a button without flex children is a no-op, so the broader scope is safe — including for the `<input type="submit">` Save Settings button (inputs ignore inline-flex layout because they have no rendered children).
 
 Convention sharpened: **every button inside `.iws-wrap` gets inline-flex centering**, not just buttons in action rows. Anywhere we put a dashicon next to text, this is the contract.
+
+### 22:27 · Admin UI · Persist active tab via URL hash + localStorage
+
+The active tab was lost whenever the user (a) saved a settings form — the form posts to `options.php` and redirects back to the admin URL, which drops any URL fragment — or (b) reloaded the page. Both cases bounced the user back to the default "Settings" tab, which is jarring if you were watching the Live Stream or editing Segments.
+
+Decided on a two-channel persistence model in `assets/js/admin.js`:
+
+1. **URL hash** (`#tab-log`): updated via `history.replaceState` on click. Survives reloads, makes tabs deep-linkable / shareable, no scroll jump.
+2. **localStorage** (`iws_active_tab`): updated alongside the hash. Recovers state across the form-submit redirect, since hashes don't survive server-side redirects.
+
+On load: hash wins (so deep links work), localStorage is the fallback, otherwise the server-rendered default ("settings") stays active. `activateTab()` is defensive — unknown slugs (e.g. stale storage from a renamed tab) are ignored and we fall through to the default.
+
+Why both channels rather than just localStorage: localStorage alone breaks shareability ("here's the link to the Segments tab" wouldn't open on that tab). And hash alone breaks form submits. Belt-and-braces for the cost of ~30 lines.
