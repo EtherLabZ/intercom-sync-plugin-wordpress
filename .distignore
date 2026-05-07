@@ -37,6 +37,8 @@ dist
 
 # Dev docs (wordpress.org uses readme.txt)
 README.md
+RELEASING.md
+decisions.md
 
 # OS noise
 .DS_Store
