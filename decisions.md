@@ -11,3 +11,11 @@ Across the admin screen, several spots used a fixed numeric `line-height` (e.g. 
 Why: relying on `line-height` for vertical centering is fragile because it couples the icon's intrinsic font metrics to the parent's chrome height. Flex `align-items: center` is metric-agnostic and works regardless of whether the surrounding text is 11.5px (badges), 13px (buttons), or 22px (header h1).
 
 Also bumped `.iws-actions .button` to `display: inline-flex` for the same reason — the previous code applied `line-height: 28px` to the icon to match WP core's default button height, but that height changes whenever the admin font scale changes.
+
+### 16:44 · Admin UI · Scope the inline-flex button rule to `.iws-wrap`, not `.iws-actions`
+
+The 13:40 fix above scoped the inline-flex button treatment to `.iws-actions .button` — but several buttons live outside that container: "Add Rule" and "Clear Log" sit in `.iws-card__header`, and "Copy" sits in `.iws-key-reveal`. Those kept misaligning in rc2 because they fell back to WP core's block-layout button rendering where the dashicons span (default font-size 20px, line-height 1) drifts above the smaller text label.
+
+Generalised the selector to `.iws-wrap .button` (and `.iws-wrap .button .dashicons`). Inline-flex on a button without flex children is a no-op, so the broader scope is safe — including for the `<input type="submit">` Save Settings button (inputs ignore inline-flex layout because they have no rendered children).
+
+Convention sharpened: **every button inside `.iws-wrap` gets inline-flex centering**, not just buttons in action rows. Anywhere we put a dashicon next to text, this is the contract.

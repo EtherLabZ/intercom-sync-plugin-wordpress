@@ -281,17 +281,21 @@
   margin-top: 8px;
 }
 
-/* Lay buttons out as inline-flex so the icon and label share a single
-   centered baseline, regardless of WP core's button line-height. The old
-   approach (line-height: 28px on the icon) only worked at one button size
-   and drifted whenever the WP admin font scaled. */
-.iws-actions .button {
+/* Lay every button inside our admin screen out as inline-flex so the icon
+   and label share a single centered baseline, regardless of WP core's
+   button line-height. We scope this to .iws-wrap (not just .iws-actions)
+   because buttons live in a few different containers — .iws-actions rows,
+   .iws-card__header (Add Rule, Clear Log), .iws-key-reveal (Copy) — and
+   they all need the same treatment.
+   The old approach (line-height: 28px on the icon) only worked at one
+   button size and drifted whenever the WP admin font scaled. */
+.iws-wrap .button {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.iws-actions .button .dashicons {
+.iws-wrap .button .dashicons {
   font-size: 16px;
   width: 16px;
   height: 16px;
