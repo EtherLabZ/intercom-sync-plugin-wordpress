@@ -11,6 +11,6 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Loose screenshots dropped in the repo root (keep real ones in wporg-assets/)
-/screenshot.png
+# Loose screenshots dropped in the repo root (keep real ones in wporg-assets/).
+# screenshot.png is tracked as the default; other stray ones stay ignored.
 /screenshot-*.png
