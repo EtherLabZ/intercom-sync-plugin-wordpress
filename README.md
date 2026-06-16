@@ -51,7 +51,7 @@ No Composer dependencies at runtime. No npm. No build step. Drop it in `wp-conte
 | **HPOS** (High Performance Order Storage) compatibility | ✅ |
 | **Encrypted token storage** (AES-256-CBC via `AUTH_KEY`/`AUTH_SALT`) | ✅ |
 | Filter hooks at every payload boundary for extensibility | ✅ |
-| Translation-ready (`intercom-woo-sync` text domain) | ✅ |
+| Translation-ready (`etherlabz-intercom-sync` text domain) | ✅ |
 
 ---
 
@@ -72,7 +72,7 @@ No Composer, no npm, no build step at runtime. Composer is only used for the dev
 
 ### From a release ZIP
 
-1. Download the latest ZIP from the [Releases page](https://github.com/Evy04/intercom-sync/releases).
+1. Download the latest ZIP from the [Releases page](https://github.com/EtherLabZ/intercom-sync-plugin-wordpress/releases).
 2. WP Admin → **Plugins → Add New → Upload Plugin** → pick the ZIP.
 3. Activate **Etherlabz Intercom Sync for WooCommerce**.
 4. Open **Intercom Sync** in the admin sidebar.
@@ -82,8 +82,8 @@ No Composer, no npm, no build step at runtime. Composer is only used for the dev
 
 ```bash
 cd wp-content/plugins
-git clone https://github.com/Evy04/intercom-sync.git intercom-woo-sync
-cd intercom-woo-sync
+git clone https://github.com/EtherLabZ/intercom-sync-plugin-wordpress.git etherlabz-intercom-sync
+cd etherlabz-intercom-sync
 composer install   # only needed for tests / lint
 ```
 
@@ -130,7 +130,7 @@ A small, modern, no-magic codebase:
 - **HPOS-ready** via `FeaturesUtil::declare_compatibility('custom_order_tables')`.
 
 ```
-intercom-woo-sync/
+etherlabz-intercom-sync/
 ├── intercom-woo-sync.php           Plugin bootstrap + header
 ├── uninstall.php                    Clean removal of all options + crons
 ├── inc/
@@ -222,7 +222,7 @@ composer install     # install dev tools (PHPCS, PHPUnit, Brain\Monkey, Mockery)
 composer lint        # PHPCS — WordPress + VIP + PHPCompatibility (must exit 0)
 composer lint:fix    # PHPCBF auto-fixes
 composer test        # PHPUnit — currently 80 tests, 125 assertions, all green
-composer build       # bash bin/build.sh — produces dist/intercom-woo-sync-X.Y.Z.zip
+composer build       # bash bin/build.sh — produces dist/etherlabz-intercom-sync-X.Y.Z.zip
 ```
 
 The Makefile wraps the same commands plus releases:
@@ -270,6 +270,6 @@ Coverage focuses on the pure-logic surfaces: encryption round-trip, settings san
 <div align="center">
 
 **Built with ♥ by [Etherlabz](https://etherlabz.com)**
-[GitHub](https://github.com/Evy04/intercom-sync) · [Issues](https://github.com/Evy04/intercom-sync/issues) · [Releases](https://github.com/Evy04/intercom-sync/releases) · [Discord](https://discord.gg/mUzv4wbX5p)
+[GitHub](https://github.com/EtherLabZ/intercom-sync-plugin-wordpress) · [Issues](https://github.com/EtherLabZ/intercom-sync-plugin-wordpress/issues) · [Releases](https://github.com/EtherLabZ/intercom-sync-plugin-wordpress/releases) · [Discord](https://discord.gg/mUzv4wbX5p)
 
 </div>

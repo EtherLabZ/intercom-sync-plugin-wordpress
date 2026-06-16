@@ -90,7 +90,7 @@ final class Cron_Health implements Registrable {
 		$class = 'error' === $severity ? 'notice notice-error' : 'notice notice-warning';
 
 		echo '<div class="' . esc_attr( $class ) . '">';
-		echo '<p><strong>' . esc_html__( 'Intercom Sync — cron health warning', 'intercom-woo-sync' ) . '</strong></p>';
+		echo '<p><strong>' . esc_html__( 'Intercom Sync — cron health warning', 'etherlabz-intercom-sync' ) . '</strong></p>';
 		echo '<ul style="list-style:disc;margin-left:20px;">';
 		foreach ( $issues as $issue ) {
 			echo '<li>' . esc_html( (string) ( $issue['message'] ?? '' ) ) . '</li>';
@@ -117,7 +117,7 @@ final class Cron_Health implements Registrable {
 				'code'     => 'wp_cron_disabled',
 				'message'  => __(
 					'DISABLE_WP_CRON is set to true. Background tasks (bulk sync, abandoned cart detection) only run if you have a server-level cron hitting wp-cron.php.',
-					'intercom-woo-sync'
+					'etherlabz-intercom-sync'
 				),
 			);
 		}
@@ -129,7 +129,7 @@ final class Cron_Health implements Registrable {
 				'code'     => 'alternate_wp_cron',
 				'message'  => __(
 					'ALTERNATE_WP_CRON is enabled. It works but is less reliable than a server cron.',
-					'intercom-woo-sync'
+					'etherlabz-intercom-sync'
 				),
 			);
 		}
@@ -146,7 +146,7 @@ final class Cron_Health implements Registrable {
 				'code'     => 'cron_stale',
 				'message'  => sprintf(
 					/* translators: %d: number of minutes since the last successful cron run. */
-					__( 'No plugin cron has run in the last %d minutes — background sync may be stuck. Check that wp-cron.php is reachable.', 'intercom-woo-sync' ),
+					__( 'No plugin cron has run in the last %d minutes — background sync may be stuck. Check that wp-cron.php is reachable.', 'etherlabz-intercom-sync' ),
 					$minutes
 				),
 			);
@@ -159,7 +159,7 @@ final class Cron_Health implements Registrable {
 				'code'     => 'no_scheduled_events',
 				'message'  => __(
 					'No plugin cron events are scheduled. Try deactivating and reactivating the plugin to restore them.',
-					'intercom-woo-sync'
+					'etherlabz-intercom-sync'
 				),
 			);
 		}

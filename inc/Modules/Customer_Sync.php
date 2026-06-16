@@ -83,13 +83,11 @@ final class Customer_Sync implements Registrable {
 			),
 		);
 
-		// Intercom requires E.164 format (+<country><number>, 7-15 digits).
-		// Attempt to normalise, otherwise skip to avoid 422 errors.
-		if ( $phone ) {
-			$digits = preg_replace( '/[^\d]/', '', $phone );
-			if ( strlen( $digits ) >= 7 && strlen( $digits ) <= 15 ) {
-				$payload['phone'] = '+' . $digits;
-			}
+		// Intercom requires E.164 format. Normalise using the billing country to
+		// supply a missing country code, otherwise skip to avoid 422 errors.
+		$e164 = Intercom_API::format_phone( (string) $phone, (string) $customer->get_billing_country() );
+		if ( '' !== $e164 ) {
+			$payload['phone'] = $e164;
 		}
 
 		$data = apply_filters( 'iws_contact_payload', $payload, $customer ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix; renaming would break downstream integrations.

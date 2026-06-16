@@ -48,7 +48,7 @@ final class Admin_Screen implements Registrable {
 			sprintf(
 				'<a href="%s">%s</a>',
 				esc_url( admin_url( 'admin.php?page=' . self::SCREEN_ID ) ),
-				__( 'Settings', 'intercom-woo-sync' )
+				__( 'Settings', 'etherlabz-intercom-sync' )
 			)
 		);
 
@@ -60,8 +60,8 @@ final class Admin_Screen implements Registrable {
 	 */
 	public function register_screen(): void {
 		add_menu_page(
-			__( 'Intercom Sync', 'intercom-woo-sync' ),
-			__( 'Intercom Sync', 'intercom-woo-sync' ),
+			__( 'Intercom Sync', 'etherlabz-intercom-sync' ),
+			__( 'Intercom Sync', 'etherlabz-intercom-sync' ),
 			'manage_options',
 			self::SCREEN_ID,
 			array( $this, 'render_screen' ),

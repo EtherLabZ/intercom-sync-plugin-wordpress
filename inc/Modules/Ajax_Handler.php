@@ -51,8 +51,8 @@ final class Ajax_Handler implements Registrable {
 			$data    = $result->get_error_data();
 			$status  = isset( $data['http_status'] ) ? (int) $data['http_status'] : 0;
 			$message = 401 === $status || 403 === $status
-				? __( 'Authentication failed. Your access token is invalid or expired.', 'intercom-woo-sync' )
-				: __( 'Connection failed. Check your access token.', 'intercom-woo-sync' );
+				? __( 'Authentication failed. Your access token is invalid or expired.', 'etherlabz-intercom-sync' )
+				: __( 'Connection failed. Check your access token.', 'etherlabz-intercom-sync' );
 
 			wp_send_json_error( array( 'message' => $message ) );
 		}
@@ -63,7 +63,7 @@ final class Ajax_Handler implements Registrable {
 			array(
 				'message' => sprintf(
 				/* translators: %s: Intercom admin name or email. */
-					__( 'Connected successfully as %s.', 'intercom-woo-sync' ),
+					__( 'Connected successfully as %s.', 'etherlabz-intercom-sync' ),
 					esc_html( $name )
 				),
 			)
@@ -79,7 +79,7 @@ final class Ajax_Handler implements Registrable {
 		if ( Bulk_Sync::is_running() ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'A bulk sync is already running.', 'intercom-woo-sync' ),
+					'message' => __( 'A bulk sync is already running.', 'etherlabz-intercom-sync' ),
 				)
 			);
 		}
@@ -88,7 +88,7 @@ final class Ajax_Handler implements Registrable {
 
 		wp_send_json_success(
 			array(
-				'message' => __( 'Bulk sync started. Customers will be synced in background batches.', 'intercom-woo-sync' ),
+				'message' => __( 'Bulk sync started. Customers will be synced in background batches.', 'etherlabz-intercom-sync' ),
 			)
 		);
 	}
@@ -117,7 +117,7 @@ final class Ajax_Handler implements Registrable {
 
 		wp_send_json_success(
 			array(
-				'message' => __( 'Sync log cleared.', 'intercom-woo-sync' ),
+				'message' => __( 'Sync log cleared.', 'etherlabz-intercom-sync' ),
 			)
 		);
 	}
@@ -146,7 +146,7 @@ final class Ajax_Handler implements Registrable {
 		$api = new Intercom_API();
 
 		if ( ! $api->has_token() ) {
-			wp_send_json_error( array( 'message' => __( 'No API token configured.', 'intercom-woo-sync' ) ) );
+			wp_send_json_error( array( 'message' => __( 'No API token configured.', 'etherlabz-intercom-sync' ) ) );
 		}
 
 		$attributes = array(
@@ -210,7 +210,7 @@ final class Ajax_Handler implements Registrable {
 						array(
 							'message' => sprintf(
 								/* translators: %d: HTTP status code (401 or 403). */
-								__( 'Authentication error (HTTP %d). Please check your Intercom access token.', 'intercom-woo-sync' ),
+								__( 'Authentication error (HTTP %d). Please check your Intercom access token.', 'etherlabz-intercom-sync' ),
 								$http_status
 							),
 						)
@@ -235,7 +235,7 @@ final class Ajax_Handler implements Registrable {
 				array(
 					'message' => sprintf(
 					/* translators: %1$d: created count, %2$d: skipped count, %3$d: error count. */
-						__( '%1$d attributes created, %2$d already existed, %3$d failed. Check the sync log for details.', 'intercom-woo-sync' ),
+						__( '%1$d attributes created, %2$d already existed, %3$d failed. Check the sync log for details.', 'etherlabz-intercom-sync' ),
 						$created,
 						$skipped,
 						$errors
@@ -249,7 +249,7 @@ final class Ajax_Handler implements Registrable {
 			array(
 				'message' => sprintf(
 				/* translators: %1$d: created count, %2$d: skipped count. */
-					__( 'Done. %1$d attributes created, %2$d already existed.', 'intercom-woo-sync' ),
+					__( 'Done. %1$d attributes created, %2$d already existed.', 'etherlabz-intercom-sync' ),
 					$created,
 					$skipped
 				),
@@ -268,7 +268,7 @@ final class Ajax_Handler implements Registrable {
 
 		wp_send_json_success(
 			array(
-				'message' => __( 'New API key generated. Copy it now — it won\'t be shown again in full.', 'intercom-woo-sync' ),
+				'message' => __( 'New API key generated. Copy it now — it won\'t be shown again in full.', 'etherlabz-intercom-sync' ),
 				'key'     => $key,
 			)
 		);
@@ -346,7 +346,7 @@ final class Ajax_Handler implements Registrable {
 
 		wp_send_json_success(
 			array(
-				'message' => __( 'Segment rules saved.', 'intercom-woo-sync' ),
+				'message' => __( 'Segment rules saved.', 'etherlabz-intercom-sync' ),
 				'rules'   => array_values( $sanitized ),
 			)
 		);
@@ -371,7 +371,7 @@ final class Ajax_Handler implements Registrable {
 
 		wp_send_json_success(
 			array(
-				'message' => __( 'Plugin crons dispatched. Refresh the page to clear the warning.', 'intercom-woo-sync' ),
+				'message' => __( 'Plugin crons dispatched. Refresh the page to clear the warning.', 'etherlabz-intercom-sync' ),
 			)
 		);
 	}
@@ -381,11 +381,11 @@ final class Ajax_Handler implements Registrable {
 	 */
 	private function verify_request(): void {
 		if ( ! check_ajax_referer( 'iws_admin_nonce', 'nonce', false ) ) {
-			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'intercom-woo-sync' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'etherlabz-intercom-sync' ) ), 403 );
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'intercom-woo-sync' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'etherlabz-intercom-sync' ) ), 403 );
 		}
 	}
 }

@@ -6,7 +6,7 @@
 #   bash bin/build.sh [--out-dir <path>]
 #
 # Output:
-#   dist/intercom-woo-sync-<version>.zip
+#   dist/etherlabz-intercom-sync-<version>.zip
 #
 # The ZIP contains only the files that should ship to end-users.
 # Files listed in .distignore are excluded.
@@ -18,7 +18,7 @@ set -euo pipefail
 # Configuration
 # ---------------------------------------------------------------------------
 
-PLUGIN_SLUG="intercom-woo-sync"
+PLUGIN_SLUG="etherlabz-intercom-sync"
 MAIN_FILE="intercom-woo-sync.php"
 DIST_DIR="dist"
 

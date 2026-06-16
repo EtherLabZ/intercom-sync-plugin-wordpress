@@ -35,6 +35,9 @@ tests
 # Build output (don't nest ZIPs inside ZIPs)
 dist
 
+# wordpress.org SVN assets (banner / icon / screenshots) — go in SVN /assets, not the zip
+wporg-assets
+
 # Dev docs (wordpress.org uses readme.txt)
 README.md
 RELEASING.md
