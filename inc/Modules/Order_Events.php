@@ -196,12 +196,12 @@ final class Order_Events implements Registrable {
 			),
 		);
 
-		$phone = (string) $order->get_billing_phone();
-		if ( '' !== $phone ) {
-			$digits = preg_replace( '/[^\d]/', '', $phone );
-			if ( $digits && strlen( $digits ) >= 7 && strlen( $digits ) <= 15 ) {
-				$payload['phone'] = '+' . $digits;
-			}
+		$e164 = Intercom_API::format_phone(
+			(string) $order->get_billing_phone(),
+			(string) $order->get_billing_country()
+		);
+		if ( '' !== $e164 ) {
+			$payload['phone'] = $e164;
 		}
 
 		return $payload;

@@ -105,7 +105,7 @@ final class Fin_Connector implements Registrable {
 		if ( ! $header || ! str_starts_with( $header, 'Bearer ' ) ) {
 			return new WP_Error(
 				'rest_forbidden',
-				__( 'Missing or invalid Authorization header.', 'intercom-woo-sync' ),
+				__( 'Missing or invalid Authorization header.', 'etherlabz-intercom-sync' ),
 				array( 'status' => 401 )
 			);
 		}
@@ -116,7 +116,7 @@ final class Fin_Connector implements Registrable {
 		if ( '' === $stored || ! hash_equals( $stored, $provided ) ) {
 			return new WP_Error(
 				'rest_forbidden',
-				__( 'Invalid API key.', 'intercom-woo-sync' ),
+				__( 'Invalid API key.', 'etherlabz-intercom-sync' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -159,7 +159,7 @@ final class Fin_Connector implements Registrable {
 
 		return new WP_Error(
 			'missing_lookup_key',
-			__( 'No valid email provided. Send X-Intercom-Verified-Email or X-Email header.', 'intercom-woo-sync' ),
+			__( 'No valid email provided. Send X-Intercom-Verified-Email or X-Email header.', 'etherlabz-intercom-sync' ),
 			array( 'status' => 400 )
 		);
 	}
@@ -182,7 +182,7 @@ final class Fin_Connector implements Registrable {
 
 		return new WP_Error(
 			'missing_lookup_key',
-			__( 'No valid order ID provided. Send X-Intercom-Verified-OrderId header.', 'intercom-woo-sync' ),
+			__( 'No valid order ID provided. Send X-Intercom-Verified-OrderId header.', 'etherlabz-intercom-sync' ),
 			array( 'status' => 400 )
 		);
 	}
@@ -254,7 +254,7 @@ final class Fin_Connector implements Registrable {
 		if ( ! $order instanceof WC_Order ) {
 			return new WP_Error(
 				'order_not_found',
-				__( 'Order not found.', 'intercom-woo-sync' ),
+				__( 'Order not found.', 'etherlabz-intercom-sync' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -263,7 +263,7 @@ final class Fin_Connector implements Registrable {
 		if ( ! $this->email_matches_order( $email, $order ) ) {
 			return new WP_Error(
 				'order_not_found',
-				__( 'Order not found.', 'intercom-woo-sync' ),
+				__( 'Order not found.', 'etherlabz-intercom-sync' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -291,7 +291,7 @@ final class Fin_Connector implements Registrable {
 		if ( ! $user ) {
 			return new WP_Error(
 				'customer_not_found',
-				__( 'Customer not found.', 'intercom-woo-sync' ),
+				__( 'Customer not found.', 'etherlabz-intercom-sync' ),
 				array( 'status' => 404 )
 			);
 		}

@@ -138,7 +138,7 @@ final class Fin_Actions implements Registrable {
 		$order = wc_get_order( $id );
 		if ( ! $order ) {
 			Intercom_API::log( 'error', 'fin-action/cancel', "Order #{$id} not found." );
-			return new WP_Error( 'not_found', __( 'Order not found.', 'intercom-woo-sync' ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Order not found.', 'etherlabz-intercom-sync' ), array( 'status' => 404 ) );
 		}
 
 		if ( $order->has_status( array( 'completed', 'refunded', 'cancelled' ) ) ) {
@@ -148,7 +148,7 @@ final class Fin_Actions implements Registrable {
 				'cannot_cancel',
 				sprintf(
 					/* translators: %s: current order status. */
-					__( 'Order is in a terminal state (%s) and cannot be cancelled.', 'intercom-woo-sync' ),
+					__( 'Order is in a terminal state (%s) and cannot be cancelled.', 'etherlabz-intercom-sync' ),
 					$status
 				),
 				array( 'status' => 409 )
@@ -186,7 +186,7 @@ final class Fin_Actions implements Registrable {
 		$order = wc_get_order( $id );
 		if ( ! $order ) {
 			Intercom_API::log( 'error', 'fin-action/refund', "Order #{$id} not found." );
-			return new WP_Error( 'not_found', __( 'Order not found.', 'intercom-woo-sync' ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Order not found.', 'etherlabz-intercom-sync' ), array( 'status' => 404 ) );
 		}
 
 		// Amount: numeric param. Defaults to remaining (full) refund.
@@ -210,7 +210,7 @@ final class Fin_Actions implements Registrable {
 				'invalid_amount',
 				sprintf(
 					/* translators: %1$s: requested amount. %2$s: max refundable amount. */
-					__( 'Refund amount %1$s is invalid (max refundable: %2$s).', 'intercom-woo-sync' ),
+					__( 'Refund amount %1$s is invalid (max refundable: %2$s).', 'etherlabz-intercom-sync' ),
 					(string) $amount,
 					(string) $max_refund
 				),
@@ -265,12 +265,12 @@ final class Fin_Actions implements Registrable {
 			$email = sanitize_email( (string) $request->get_param( 'email' ) );
 		}
 		if ( ! is_email( $email ) ) {
-			return new WP_Error( 'missing_email', __( 'Provide a valid X-Email header or email param.', 'intercom-woo-sync' ), array( 'status' => 400 ) );
+			return new WP_Error( 'missing_email', __( 'Provide a valid X-Email header or email param.', 'etherlabz-intercom-sync' ), array( 'status' => 400 ) );
 		}
 
 		$note = sanitize_textarea_field( (string) $request->get_param( 'note' ) );
 		if ( '' === $note ) {
-			return new WP_Error( 'missing_note', __( 'Provide a non-empty note param.', 'intercom-woo-sync' ), array( 'status' => 400 ) );
+			return new WP_Error( 'missing_note', __( 'Provide a non-empty note param.', 'etherlabz-intercom-sync' ), array( 'status' => 400 ) );
 		}
 
 		// Find the most recent order for this email and attach the note there.
@@ -285,7 +285,7 @@ final class Fin_Actions implements Registrable {
 
 		if ( empty( $orders ) ) {
 			Intercom_API::log( 'error', 'fin-action/note', "No order found for {$email}." );
-			return new WP_Error( 'no_order', __( 'No order found for this email — note not attached.', 'intercom-woo-sync' ), array( 'status' => 404 ) );
+			return new WP_Error( 'no_order', __( 'No order found for this email — note not attached.', 'etherlabz-intercom-sync' ), array( 'status' => 404 ) );
 		}
 
 		$order = $orders[0];

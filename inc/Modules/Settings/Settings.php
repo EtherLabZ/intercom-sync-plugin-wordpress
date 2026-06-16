@@ -218,7 +218,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_access_token',
-			__( 'Intercom Access Token', 'intercom-woo-sync' ),
+			__( 'Intercom Access Token', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_token_field' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -226,7 +226,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_sync_customers',
-			__( 'Sync Customers', 'intercom-woo-sync' ),
+			__( 'Sync Customers', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_customers_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -234,7 +234,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_sync_orders',
-			__( 'Sync Order Events', 'intercom-woo-sync' ),
+			__( 'Sync Order Events', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_orders_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -242,7 +242,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_hmac_secret',
-			__( 'Identity Verification Secret', 'intercom-woo-sync' ),
+			__( 'Identity Verification Secret', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_hmac_field' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -250,7 +250,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_app_id',
-			__( 'Intercom App ID', 'intercom-woo-sync' ),
+			__( 'Intercom App ID', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_app_id_field' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -258,7 +258,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_enable_messenger',
-			__( 'Embed Intercom Messenger', 'intercom-woo-sync' ),
+			__( 'Embed Intercom Messenger', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_messenger_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -266,7 +266,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_enable_cart_events',
-			__( 'Track Cart & Funnel Events', 'intercom-woo-sync' ),
+			__( 'Track Cart & Funnel Events', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_cart_events_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -274,7 +274,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_enable_cart_abandonment',
-			__( 'Abandoned Cart Detection', 'intercom-woo-sync' ),
+			__( 'Abandoned Cart Detection', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_cart_abandon_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -282,7 +282,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_cart_abandon_minutes',
-			__( 'Abandonment Threshold (minutes)', 'intercom-woo-sync' ),
+			__( 'Abandonment Threshold (minutes)', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_cart_abandon_minutes' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -290,7 +290,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_enable_subscriptions',
-			__( 'WooCommerce Subscriptions Events', 'intercom-woo-sync' ),
+			__( 'WooCommerce Subscriptions Events', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_subscriptions_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -298,7 +298,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_enable_purchase_tags',
-			__( 'Auto-Tag Customers by Purchase', 'intercom-woo-sync' ),
+			__( 'Auto-Tag Customers by Purchase', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_purchase_tags_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -306,7 +306,7 @@ final class Settings implements Registrable {
 
 		add_settings_field(
 			'iws_sync_guest_checkout',
-			__( 'Sync Guest Checkout Customers', 'intercom-woo-sync' ),
+			__( 'Sync Guest Checkout Customers', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_guest_checkout_toggle' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
@@ -330,14 +330,14 @@ final class Settings implements Registrable {
 		printf(
 			'<input type="password" id="iws_access_token" name="iws_access_token" value="%s" class="regular-text" autocomplete="off" placeholder="%s" />',
 			esc_attr( $plain ),
-			esc_attr__( 'Paste your Intercom access token', 'intercom-woo-sync' )
+			esc_attr__( 'Paste your Intercom access token', 'etherlabz-intercom-sync' )
 		);
 		echo '<p class="description">';
 		if ( '' !== $plain ) {
 			echo '<span class="dashicons dashicons-lock iws-lock-icon"></span> ';
-			echo esc_html__( 'Token is stored encrypted.', 'intercom-woo-sync' ) . ' ';
+			echo esc_html__( 'Token is stored encrypted.', 'etherlabz-intercom-sync' ) . ' ';
 		}
-		echo esc_html__( 'Found in Intercom → Settings → Developers → Access Token.', 'intercom-woo-sync' );
+		echo esc_html__( 'Found in Intercom → Settings → Developers → Access Token.', 'etherlabz-intercom-sync' );
 		echo '</p>';
 	}
 
@@ -350,7 +350,7 @@ final class Settings implements Registrable {
 			'<label class="iws-toggle"><input type="checkbox" name="iws_sync_customers" value="yes" %s /><span class="iws-toggle__slider"></span></label>',
 			checked( $value, 'yes', false )
 		);
-		echo '<span class="description">' . esc_html__( 'Automatically sync new and updated customers to Intercom.', 'intercom-woo-sync' ) . '</span>';
+		echo '<span class="description">' . esc_html__( 'Automatically sync new and updated customers to Intercom.', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
@@ -362,7 +362,7 @@ final class Settings implements Registrable {
 			'<label class="iws-toggle"><input type="checkbox" name="iws_sync_orders" value="yes" %s /><span class="iws-toggle__slider"></span></label>',
 			checked( $value, 'yes', false )
 		);
-		echo '<span class="description">' . esc_html__( 'Send order-status events to Intercom when orders change status.', 'intercom-woo-sync' ) . '</span>';
+		echo '<span class="description">' . esc_html__( 'Send order-status events to Intercom when orders change status.', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
@@ -375,14 +375,14 @@ final class Settings implements Registrable {
 		printf(
 			'<input type="password" id="iws_hmac_secret" name="iws_hmac_secret" value="%s" class="regular-text" autocomplete="off" placeholder="%s" />',
 			esc_attr( $plain ),
-			esc_attr__( 'Paste your Intercom identity verification secret', 'intercom-woo-sync' )
+			esc_attr__( 'Paste your Intercom identity verification secret', 'etherlabz-intercom-sync' )
 		);
 		echo '<p class="description">';
 		if ( '' !== $plain ) {
 			echo '<span class="dashicons dashicons-lock iws-lock-icon"></span> ';
-			echo esc_html__( 'Secret is stored encrypted.', 'intercom-woo-sync' ) . ' ';
+			echo esc_html__( 'Secret is stored encrypted.', 'etherlabz-intercom-sync' ) . ' ';
 		}
-		echo esc_html__( 'Found in Intercom → Settings → Identity Verification. Used to generate HMAC for the chat widget.', 'intercom-woo-sync' );
+		echo esc_html__( 'Found in Intercom → Settings → Identity Verification. Used to generate HMAC for the chat widget.', 'etherlabz-intercom-sync' );
 		echo '</p>';
 	}
 
@@ -394,10 +394,10 @@ final class Settings implements Registrable {
 		printf(
 			'<input type="text" id="iws_app_id" name="iws_app_id" value="%s" class="regular-text" autocomplete="off" placeholder="%s" />',
 			esc_attr( $value ),
-			esc_attr__( 'e.g. abc12def', 'intercom-woo-sync' )
+			esc_attr__( 'e.g. abc12def', 'etherlabz-intercom-sync' )
 		);
 		echo '<p class="description">';
-		echo esc_html__( 'Your Intercom workspace ID. Required to embed the Messenger widget on your site. Found in Intercom → Settings → Workspace.', 'intercom-woo-sync' );
+		echo esc_html__( 'Your Intercom workspace ID. Required to embed the Messenger widget on your site. Found in Intercom → Settings → Workspace.', 'etherlabz-intercom-sync' );
 		echo '</p>';
 	}
 
@@ -408,7 +408,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'iws_enable_messenger',
 			'no',
-			__( 'Embed the Intercom chat widget on the public site (uses HMAC if a secret is set).', 'intercom-woo-sync' )
+			__( 'Embed the Intercom chat widget on the public site (uses HMAC if a secret is set).', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -419,7 +419,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'iws_enable_cart_events',
 			'no',
-			__( 'Send product-viewed, cart-added, coupon-applied, and checkout-started events to Intercom.', 'intercom-woo-sync' )
+			__( 'Send product-viewed, cart-added, coupon-applied, and checkout-started events to Intercom.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -430,7 +430,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'iws_enable_cart_abandonment',
 			'no',
-			__( 'Fire a `cart-abandoned` event when a logged-in customer leaves items in their cart for longer than the threshold below.', 'intercom-woo-sync' )
+			__( 'Fire a `cart-abandoned` event when a logged-in customer leaves items in their cart for longer than the threshold below.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -443,7 +443,7 @@ final class Settings implements Registrable {
 			'<input type="number" id="iws_cart_abandon_minutes" name="iws_cart_abandon_minutes" value="%s" min="5" max="10080" step="5" class="small-text" />',
 			esc_attr( (string) $value )
 		);
-		echo '<span class="description"> ' . esc_html__( 'Minutes of inactivity before a cart is considered abandoned. Minimum 5, maximum 10080 (1 week).', 'intercom-woo-sync' ) . '</span>';
+		echo '<span class="description"> ' . esc_html__( 'Minutes of inactivity before a cart is considered abandoned. Minimum 5, maximum 10080 (1 week).', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
@@ -453,7 +453,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'iws_enable_subscriptions',
 			'no',
-			__( 'Send subscription lifecycle events (activated, renewed, cancelled, payment failed) to Intercom. Requires WooCommerce Subscriptions.', 'intercom-woo-sync' )
+			__( 'Send subscription lifecycle events (activated, renewed, cancelled, payment failed) to Intercom. Requires WooCommerce Subscriptions.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -464,7 +464,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'iws_enable_purchase_tags',
 			'no',
-			__( 'Automatically apply Intercom tags like `purchased-{slug}` and `purchased-category-{slug}` on order completion (and remove them on refund).', 'intercom-woo-sync' )
+			__( 'Automatically apply Intercom tags like `purchased-{slug}` and `purchased-category-{slug}` on order completion (and remove them on refund).', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -475,7 +475,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'iws_sync_guest_checkout',
 			'yes',
-			__( 'Create Intercom contacts for guest checkouts (using the billing email).', 'intercom-woo-sync' )
+			__( 'Create Intercom contacts for guest checkouts (using the billing email).', 'etherlabz-intercom-sync' )
 		);
 	}
 

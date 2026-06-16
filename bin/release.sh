@@ -34,7 +34,7 @@ set -euo pipefail
 DRAFT_FLAG="--draft"
 PRERELEASE_FLAG=""
 CUSTOM_NOTES=""
-PLUGIN_SLUG="intercom-woo-sync"
+PLUGIN_SLUG="etherlabz-intercom-sync"
 MAIN_FILE="intercom-woo-sync.php"
 
 # ---------------------------------------------------------------------------

@@ -131,11 +131,80 @@ final class Intercom_API {
 
 			if ( ! is_wp_error( $search ) && ! empty( $search['data'][0]['id'] ) ) {
 				$intercom_id = $search['data'][0]['id'];
-				return $this->update_contact( $intercom_id, $data );
+				return $this->flag_failure( $this->update_contact( $intercom_id, $data ), $email, 'Contact sync' );
 			}
 		}
 
-		return $this->request( 'POST', '/contacts', $data );
+		$result = $this->request( 'POST', '/contacts', $data );
+
+		// Search excludes archived contacts and can lag the index, so a POST may
+		// still 409 even though we looked first. Intercom returns the conflicting
+		// id in the error message — recover it and update in place instead.
+		if ( is_wp_error( $result ) && 409 === ( $result->get_error_data()['http_status'] ?? 0 ) ) {
+			$message     = (string) ( $result->get_error_data()['error_msg'] ?? '' );
+			$intercom_id = self::parse_conflict_id( $message );
+
+			if ( '' !== $intercom_id ) {
+				// Archived contacts must be unarchived before they accept updates.
+				if ( false !== stripos( $message, 'archived' ) ) {
+					$this->unarchive_contact( $intercom_id );
+				}
+
+				return $this->flag_failure( $this->update_contact( $intercom_id, $data ), $email, 'Contact sync' );
+			}
+		}
+
+		return $this->flag_failure( $result, $email, 'Contact sync' );
+	}
+
+	/**
+	 * Log a contact/event sync that failed completely, naming the affected email.
+	 *
+	 * The low-level request() already logs the raw HTTP error against the
+	 * endpoint; this adds a second, human-readable line that ties the failure to
+	 * a specific customer so admins can see *who* didn't sync.
+	 *
+	 * @param array<string, mixed>|\WP_Error $result  The final API result.
+	 * @param string                         $email   The affected contact email.
+	 * @param string                         $context Short label, e.g. 'Contact sync'.
+	 *
+	 * @return array<string, mixed>|\WP_Error The unchanged $result, for chaining.
+	 */
+	private function flag_failure( $result, string $email, string $context ) {
+		if ( is_wp_error( $result ) ) {
+			$who = '' !== $email ? $email : '(unknown email)';
+			self::log( 'error', $context, sprintf( 'Failed for %s: %s', $who, $result->get_error_message() ) );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Extract the conflicting contact id from a 409 error message.
+	 *
+	 * Intercom phrases these as "...already exists with id=<24-hex>".
+	 *
+	 * @param string $message The Intercom error message.
+	 *
+	 * @return string The contact id, or '' when none is present.
+	 */
+	private static function parse_conflict_id( string $message ): string {
+		if ( preg_match( '/id=([a-f0-9]{24})/i', $message, $matches ) ) {
+			return $matches[1];
+		}
+
+		return '';
+	}
+
+	/**
+	 * Unarchive a previously archived contact so it can be updated.
+	 *
+	 * @param string $intercom_id The Intercom contact ID.
+	 *
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	public function unarchive_contact( string $intercom_id ) {
+		return $this->request( 'POST', '/contacts/' . $intercom_id . '/unarchive' );
 	}
 
 	/**
@@ -181,16 +250,31 @@ final class Intercom_API {
 	 * @return array<string, mixed>|\WP_Error
 	 */
 	public function create_event( string $email, string $event_name, array $metadata = array() ) {
-		return $this->request(
-			'POST',
-			'/events',
-			array(
-				'event_name' => $event_name,
-				'created_at' => time(),
-				'email'      => $email,
-				'metadata'   => $metadata,
-			)
+		$payload = array(
+			'event_name' => $event_name,
+			'created_at' => time(),
+			'email'      => $email,
+			'metadata'   => $metadata,
 		);
+
+		$result = $this->request( 'POST', '/events', $payload );
+
+		// Events for an email with no matching contact return 404 "User Not Found".
+		// Create a minimal contact, then replay the event once so it isn't lost.
+		if ( is_wp_error( $result ) && 404 === ( $result->get_error_data()['http_status'] ?? 0 ) && $email ) {
+			$contact = $this->upsert_contact(
+				array(
+					'role'  => 'user',
+					'email' => $email,
+				)
+			);
+
+			if ( ! is_wp_error( $contact ) ) {
+				$result = $this->request( 'POST', '/events', $payload );
+			}
+		}
+
+		return $this->flag_failure( $result, $email, 'Event: ' . $event_name );
 	}
 
 	/**
@@ -319,6 +403,109 @@ final class Intercom_API {
 		}
 
 		return $this->request( 'GET', '/me' );
+	}
+
+	/**
+	 * Normalise a phone number to E.164 (+<country><number>), or '' if it can't be.
+	 *
+	 * Intercom rejects anything that isn't valid E.164 with a 422. The previous
+	 * approach of stripping non-digits and prepending '+' turned national-format
+	 * numbers (no country code) into invalid values. This:
+	 *   - treats a leading '+' or '00' as an explicit country code,
+	 *   - otherwise derives the country code from the order/billing country,
+	 *   - and returns '' (skip the field) when it still can't be sure.
+	 *
+	 * @param string $phone   The raw phone string.
+	 * @param string $country ISO-3166-1 alpha-2 billing country (optional).
+	 *
+	 * @return string E.164 phone, or '' when it can't be normalised safely.
+	 */
+	public static function format_phone( string $phone, string $country = '' ): string {
+		$phone = trim( $phone );
+
+		if ( '' === $phone ) {
+			return '';
+		}
+
+		// International call prefix "00" is equivalent to "+".
+		if ( 0 === strpos( $phone, '00' ) ) {
+			$phone = '+' . substr( $phone, 2 );
+		}
+
+		$has_country = ( '' !== $phone && '+' === $phone[0] );
+		$digits      = preg_replace( '/\D/', '', $phone );
+
+		if ( '' === (string) $digits ) {
+			return '';
+		}
+
+		// Explicit country code present — accept if the length is plausible.
+		if ( $has_country ) {
+			return ( strlen( $digits ) >= 8 && strlen( $digits ) <= 15 ) ? '+' . $digits : '';
+		}
+
+		// No country code: prepend the one for the billing country, dropping a
+		// single national trunk "0" if present.
+		$code = self::dialing_code( $country );
+
+		if ( '' !== $code ) {
+			$national = ltrim( $digits, '0' );
+			$combined = $code . $national;
+
+			return ( strlen( $combined ) >= 8 && strlen( $combined ) <= 15 ) ? '+' . $combined : '';
+		}
+
+		// Unknown country and no explicit code — too risky to guess.
+		return '';
+	}
+
+	/**
+	 * Map an ISO-3166-1 alpha-2 country code to its primary calling code.
+	 *
+	 * Covers the most common WooCommerce storefront markets; unknown countries
+	 * return '' so the phone is skipped rather than mis-formatted.
+	 *
+	 * @param string $country ISO-3166-1 alpha-2 code (case-insensitive).
+	 *
+	 * @return string The calling code (digits only) or ''.
+	 */
+	private static function dialing_code( string $country ): string {
+		$map = array(
+			'US' => '1',
+			'CA' => '1',
+			'GB' => '44',
+			'IE' => '353',
+			'AU' => '61',
+			'NZ' => '64',
+			'IN' => '91',
+			'DE' => '49',
+			'FR' => '33',
+			'ES' => '34',
+			'IT' => '39',
+			'NL' => '31',
+			'BE' => '32',
+			'PT' => '351',
+			'SE' => '46',
+			'NO' => '47',
+			'DK' => '45',
+			'FI' => '358',
+			'CH' => '41',
+			'AT' => '43',
+			'PL' => '48',
+			'BR' => '55',
+			'MX' => '52',
+			'AR' => '54',
+			'ZA' => '27',
+			'AE' => '971',
+			'SA' => '966',
+			'SG' => '65',
+			'MY' => '60',
+			'JP' => '81',
+			'CN' => '86',
+			'HK' => '852',
+		);
+
+		return $map[ strtoupper( $country ) ] ?? '';
 	}
 
 	/**

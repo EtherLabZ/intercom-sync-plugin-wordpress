@@ -19,7 +19,7 @@ define( 'AUTH_SALT', 'unit-test-auth-salt-not-used-in-production' );
 // Plugin constants normally set by intercom-woo-sync.php.
 define( 'INTERCOM_WOO_SYNC_FILE', dirname( __DIR__ ) . '/intercom-woo-sync.php' );
 define( 'INTERCOM_WOO_SYNC_PATH', dirname( __DIR__ ) . '/' );
-define( 'INTERCOM_WOO_SYNC_URL', 'https://example.com/wp-content/plugins/intercom-woo-sync/' );
+define( 'INTERCOM_WOO_SYNC_URL', 'https://example.com/wp-content/plugins/etherlabz-intercom-sync/' );
 define( 'INTERCOM_WOO_SYNC_VERSION', '1.3.0' );
 
 // Load Composer's autoloader (PHPUnit, Brain\Monkey, Mockery).

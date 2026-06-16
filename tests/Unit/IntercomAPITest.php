@@ -302,4 +302,118 @@ class IntercomAPITest extends TestCase {
 		$data = $result->get_error_data();
 		$this->assertSame( 401, $data['http_status'] );
 	}
+
+	// ------------------------------------------------------------------
+	// format_phone() — E.164 normalisation (pure logic, no HTTP).
+	// ------------------------------------------------------------------
+
+	public function test_format_phone_returns_empty_for_blank(): void {
+		$this->assertSame( '', Intercom_API::format_phone( '', 'US' ) );
+		$this->assertSame( '', Intercom_API::format_phone( '   ', 'US' ) );
+	}
+
+	public function test_format_phone_keeps_explicit_plus_country_code(): void {
+		$this->assertSame( '+14155552671', Intercom_API::format_phone( '+1 (415) 555-2671', '' ) );
+		$this->assertSame( '+442071838750', Intercom_API::format_phone( '+44 20 7183 8750', 'US' ) );
+	}
+
+	public function test_format_phone_converts_double_zero_prefix_to_plus(): void {
+		$this->assertSame( '+14155552671', Intercom_API::format_phone( '0014155552671', '' ) );
+	}
+
+	public function test_format_phone_prepends_country_code_for_national_number(): void {
+		// US national number, no country code — derive +1.
+		$this->assertSame( '+14155552671', Intercom_API::format_phone( '(415) 555-2671', 'US' ) );
+		// UK national with trunk 0 — strip the 0, prepend +44.
+		$this->assertSame( '+442071838750', Intercom_API::format_phone( '020 7183 8750', 'GB' ) );
+		// India national with trunk 0.
+		$this->assertSame( '+919876543210', Intercom_API::format_phone( '09876543210', 'IN' ) );
+	}
+
+	public function test_format_phone_returns_empty_when_country_unknown_and_no_code(): void {
+		// No '+' and no resolvable country code — too risky to guess.
+		$this->assertSame( '', Intercom_API::format_phone( '5551234', '' ) );
+		$this->assertSame( '', Intercom_API::format_phone( '020 7183 8750', 'ZZ' ) );
+	}
+
+	public function test_format_phone_rejects_implausible_lengths(): void {
+		// Too short even with a country code.
+		$this->assertSame( '', Intercom_API::format_phone( '+1 234', '' ) );
+		// Too long.
+		$this->assertSame( '', Intercom_API::format_phone( '+1234567890123456', '' ) );
+	}
+
+	// ------------------------------------------------------------------
+	// upsert_contact() logs the affected email when a sync fails completely.
+	// ------------------------------------------------------------------
+
+	public function test_upsert_contact_logs_email_on_total_failure(): void {
+		$stored = array();
+
+		Functions\when( 'get_option' )->alias(
+			function ( string $key, $default = null ) use ( &$stored ) {
+				if ( 'iws_access_token' === $key ) {
+					return Encryption::encrypt( 'tok' );
+				}
+				return $stored[ $key ] ?? $default;
+			}
+		);
+		Functions\when( 'update_option' )->alias(
+			function ( string $key, $value ) use ( &$stored ): bool {
+				$stored[ $key ] = $value;
+				return true;
+			}
+		);
+		Functions\when( 'current_time' )->justReturn( '2026-06-17 00:00:00' );
+		Functions\when( 'is_wp_error' )->alias( fn( $t ) => $t instanceof \WP_Error );
+		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
+
+		// Search returns no match (200); the POST /contacts then 422s on phone.
+		Functions\when( 'wp_remote_request' )->alias(
+			function ( string $url ) {
+				$is_search = false !== strpos( $url, '/contacts/search' );
+				return array(
+					'response' => array( 'code' => $is_search ? 200 : 422 ),
+					'body'     => $is_search
+						? json_encode( array( 'data' => array() ) )
+						: json_encode(
+							array(
+								'errors' => array(
+									array(
+										'code'    => 'parameter_invalid',
+										'message' => 'phone is invalid',
+									),
+								),
+							)
+						),
+				);
+			}
+		);
+		Functions\when( 'wp_remote_retrieve_response_code' )->alias(
+			fn( $r ) => $r['response']['code'] ?? 0
+		);
+		Functions\when( 'wp_remote_retrieve_body' )->alias(
+			fn( $r ) => $r['body'] ?? ''
+		);
+
+		$api    = new Intercom_API();
+		$result = $api->upsert_contact(
+			array(
+				'email' => 'jane@example.com',
+				'phone' => '+0',
+			)
+		);
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+
+		$log      = $stored['iws_sync_log'] ?? array();
+		$messages = array_column( $log, 'msg' );
+
+		// The named-email failure line is present.
+		$matched = array_filter(
+			$messages,
+			fn( $m ) => false !== strpos( $m, 'Failed for jane@example.com' )
+		);
+		$this->assertNotEmpty( $matched, 'Expected a failure log naming the email.' );
+	}
 }

@@ -44,3 +44,37 @@ Decided to render a literal `<hr class="wp-header-end" />` immediately after the
 Why a real `<hr>` rather than slapping the class on the `<h1>` directly: the brand header treats the `<h1>` as a flex child alongside the icon and version pill. Adding `wp-header-end` to it would turn our visual title into the literal placement target, but it would also pull notices into the gradient block (above the description). A separate sibling `<hr>` lets the placement target sit *outside* the brand chrome, so notices land in the natural admin spot below it.
 
 Convention to remember: any custom admin screen with a custom-styled header **must** include a `wp-header-end` marker after the chrome ends. Otherwise WP's notice-relocation will fight the design.
+
+## 2026-06-17
+
+### 02:50 · Intercom API · Centralise sync-error recovery in Intercom_API rather than per-caller
+
+Three recurring sync-log errors traced to one wrapper. Fixed all in `Intercom_API` so every module benefits, instead of patching Customer_Sync / Order_Events / Cart / Subscription separately.
+
+- **409 conflict (incl. archived):** `upsert_contact` searched by email first, but Intercom search excludes archived contacts and lags its index, so POST /contacts still 409'd. Now on a 409 we parse the `id=<24hex>` out of the error message, unarchive if the message says "archived", and PUT-update in place. Why parse the message rather than re-search: the id is handed to us in the error and re-search would hit the same stale index.
+- **404 "User Not Found" on /events:** events fired for an email with no contact yet (Order_Events fired the event *before* upserting). Fixed centrally in `create_event`: on 404 we upsert a minimal `{role:user,email}` contact and replay the event once. Chose central self-heal over reordering each caller so Cart/Subscription events get it too.
+- **422 "phone is invalid":** old code stripped non-digits and prepended `+`, turning national numbers into invalid E.164. New `Intercom_API::format_phone($phone,$country)` treats `+`/`00` as explicit country code, else derives the calling code from the billing country (small ISO→code map), drops a trunk leading 0, and returns '' (skip the field) when it can't be sure. Why skip rather than best-effort: a skipped phone is a non-event; an invalid one is a logged 422 on every sync.
+
+### 02:55 · Distribution · Add wp.org readme.txt with External Services disclosure
+
+Plugin had only README.md (GitHub). Added `readme.txt` in wp.org format. Security audit of escaping/sanitization/nonce/caps came back clean — the only real blocker was the missing readme + an **External Services** section: wp.org requires disclosing that data is sent to Intercom (api.intercom.io, widget.intercom.io, api-iam.intercom.io), what data, when, and links to Intercom ToS/privacy. Stable tag set to 1.6.0; header is still 1.6.0-rc1 — must be reconciled (header → 1.6.0) before actual wp.org submission.
+
+### 03:05 · Versioning · Bump to 2.0.0 and align header/readme/changelog
+
+Reconciled the earlier header(1.6.0-rc1)/readme(1.6.0) split by going straight to 2.0.0 per request. The 409/404/422 recovery rework + the new failure-logging behaviour are a meaningful behavioural shift in how syncs resolve, so major-version is defensible. Stable tag, header Version, INTERCOM_WOO_SYNC_VERSION constant, changelog and upgrade notice all now read 2.0.0.
+
+### 03:06 · Logging · Name the affected email on a complete sync failure
+
+Raw HTTP errors were logged against the endpoint (e.g. "/contacts HTTP 422") with no way to tell *which* customer failed. Added a private `Intercom_API::flag_failure()` that, when the final result (after 409/404 recovery) is still a WP_Error, logs a second line "Failed for <email>: <msg>" under a friendly action label ("Contact sync" / "Event: <name>"). Falls back to "(unknown email)" when none is known. Why a separate line rather than enriching request()'s log: request() has no email in scope and is also used for token-less calls (/me, /tags); keeping the who-failed concern at the upsert/event layer keeps it accurate.
+
+### 03:07 · Distribution · wordpress.org screenshot via wporg-assets/, excluded from zip
+
+wp.org reads screenshots from the SVN root `assets/` dir, not the plugin zip. Added `wporg-assets/` (screenshot-1.svg source + rendered screenshot-1.png, generated with rsvg-convert) and excluded it via .distignore so it never ships in the plugin. readme `== Screenshots ==` lists exactly the one file that exists to avoid Plugin Check "missing screenshot" warnings. screenshot-1.png is a representative admin-UI mockup — README in wporg-assets/ notes it can be swapped for a real capture and lists the icon/banner assets still to add.
+
+### 03:20 · Compliance · Rename text-domain + slug to etherlabz-intercom-sync (trademark)
+
+wp.org rejects plugin slugs/names that **begin** with another company's trademark. Old slug/text-domain `intercom-woo-sync` starts with "intercom" (Intercom Inc.) → would be rejected. Renamed text-domain to `etherlabz-intercom-sync` (brand-led, Etherlabz owns it; "Intercom" mid-string and "for WooCommerce" suffix are allowed). Text-domain MUST equal the wp.org SVN slug, so the zip inner folder + PLUGIN_SLUG in bin/build.sh + bin/release.sh also became `etherlabz-intercom-sync`. Updated phpcs.xml.dist `text_domain` to match.
+
+Deliberately NOT renamed: the main file `intercom-woo-sync.php` (filename is irrelevant to i18n auto-loading since WP 4.6, and renaming risks plugin-basename churn) and `Admin_Screen::SCREEN_ID` / asset handle PREFIX / `toplevel_page_` hook check (internal admin-URL + handle identifiers, not a compliance concern — changing them would move the admin page URL for no benefit).
+
+License: added canonical GPLv2 as `license.txt` (curl'd from gnu.org) to match the existing `GPL-2.0-or-later` header. Chose GPLv2 over MIT to stay consistent with the header and WP norm. Version kept at 2.0.0.
