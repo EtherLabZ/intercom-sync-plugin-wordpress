@@ -10,3 +10,7 @@ composer.lock
 Thumbs.db
 .idea/
 .vscode/
+
+# Loose screenshots dropped in the repo root (keep real ones in wporg-assets/)
+/screenshot.png
+/screenshot-*.png
