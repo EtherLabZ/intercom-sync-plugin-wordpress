@@ -43,6 +43,13 @@ README.md
 RELEASING.md
 decisions.md
 
+# Loose screenshots / images in the repo root (real ones live in wporg-assets).
+# Anchored with a leading slash so plugin images in subdirs still ship.
+/screenshot.png
+/*.png
+/*.jpg
+/*.jpeg
+
 # OS noise
 .DS_Store
 Thumbs.db
