@@ -24,7 +24,7 @@ Etherlabz Intercom Sync connects your WooCommerce store to Intercom end to end â
 * **Intercom Messenger embed** with HMAC-SHA256 `user_hash` identity verification.
 * **Fin AI REST connector** â€” Bearer-authenticated endpoints so Fin can answer "where is my order?" in real time.
 * **HPOS compatible** (High-Performance Order Storage).
-* **Encrypted token storage** (AES-256-CBC keyed off `AUTH_KEY` / `AUTH_SALT`).
+* **Encrypted token storage** (AES-256-GCM with a random IV per value, keyed off `AUTH_KEY`).
 * Filter hooks at every payload boundary for extensibility.
 
 = Why this plugin =
@@ -75,7 +75,7 @@ Yes. The plugin declares WooCommerce as a required plugin and will not run witho
 
 = Is my Access Token stored securely? =
 
-Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-CBC keyed off your site's `AUTH_KEY` / `AUTH_SALT`.
+Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-GCM (random IV per value, authenticated) keyed off your site's `AUTH_KEY`.
 
 == Screenshots ==
 

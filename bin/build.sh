@@ -82,8 +82,6 @@ rsync \
   . \
   "${STAGING_DIR}/"
 
-# Ensure the languages directory exists (wordpress.org expects it).
-mkdir -p "${STAGING_DIR}/languages"
 
 # ---------------------------------------------------------------------------
 # Create the ZIP — the inner folder must match the plugin slug.
