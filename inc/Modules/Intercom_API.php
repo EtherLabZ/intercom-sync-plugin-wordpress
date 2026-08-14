@@ -37,7 +37,7 @@ final class Intercom_API {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$raw         = (string) get_option( 'iws_access_token', '' );
+		$raw         = (string) get_option( 'etherlabz_intercom_access_token', '' );
 		$this->token = Encryption::decrypt( $raw );
 	}
 
@@ -516,7 +516,7 @@ final class Intercom_API {
 	 * @param string $msg     A human-readable message.
 	 */
 	public static function log( string $status, string $action, string $msg ): void {
-		$log = get_option( 'iws_sync_log', array() );
+		$log = get_option( 'etherlabz_intercom_sync_log', array() );
 
 		if ( ! is_array( $log ) ) {
 			$log = array();
@@ -534,6 +534,6 @@ final class Intercom_API {
 
 		// Keep the last 100 entries. Not autoloaded — the log is only read
 		// on the admin screen, not on every front-end request.
-		update_option( 'iws_sync_log', array_slice( $log, 0, 100 ), false );
+		update_option( 'etherlabz_intercom_sync_log', array_slice( $log, 0, 100 ), false );
 	}
 }

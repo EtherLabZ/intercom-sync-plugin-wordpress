@@ -72,7 +72,7 @@ class CronHealthTest extends TestCase {
 	}
 
 	public function test_check_returns_empty_when_environment_is_healthy(): void {
-		$this->options['iws_last_cron_run'] = time() - 60; // ran 1 min ago.
+		$this->options['etherlabz_intercom_last_cron_run'] = time() - 60; // ran 1 min ago.
 
 		$issues = Cron_Health::check();
 
@@ -84,7 +84,7 @@ class CronHealthTest extends TestCase {
 			define( 'DISABLE_WP_CRON', true ); // phpcs:ignore
 		}
 
-		$this->options['iws_last_cron_run'] = time() - 60;
+		$this->options['etherlabz_intercom_last_cron_run'] = time() - 60;
 
 		$issues = Cron_Health::check();
 
@@ -93,7 +93,7 @@ class CronHealthTest extends TestCase {
 	}
 
 	public function test_check_errors_when_cron_is_stale(): void {
-		$this->options['iws_last_cron_run'] = time() - ( 3 * HOUR_IN_SECONDS );
+		$this->options['etherlabz_intercom_last_cron_run'] = time() - ( 3 * HOUR_IN_SECONDS );
 
 		$issues = Cron_Health::check();
 
@@ -111,7 +111,7 @@ class CronHealthTest extends TestCase {
 	public function test_check_does_not_flag_stale_when_no_events_are_scheduled(): void {
 		// If there are no scheduled events, "no run in an hour" is expected, not stale.
 		$this->has_scheduled                = false;
-		$this->options['iws_last_cron_run'] = time() - ( 3 * HOUR_IN_SECONDS );
+		$this->options['etherlabz_intercom_last_cron_run'] = time() - ( 3 * HOUR_IN_SECONDS );
 
 		$issues = Cron_Health::check();
 
@@ -121,8 +121,8 @@ class CronHealthTest extends TestCase {
 
 	public function test_check_warns_when_no_scheduled_events_but_token_is_set(): void {
 		$this->has_scheduled                  = false;
-		$this->options['iws_access_token']    = 'some-encrypted-token';
-		$this->options['iws_last_cron_run']   = 0;
+		$this->options['etherlabz_intercom_access_token']    = 'some-encrypted-token';
+		$this->options['etherlabz_intercom_last_cron_run']   = 0;
 
 		$issues = Cron_Health::check();
 
@@ -134,7 +134,7 @@ class CronHealthTest extends TestCase {
 		$before = time();
 		Cron_Health::stamp_run();
 
-		$this->assertGreaterThanOrEqual( $before, (int) $this->options['iws_last_cron_run'] );
-		$this->assertLessThanOrEqual( time(), (int) $this->options['iws_last_cron_run'] );
+		$this->assertGreaterThanOrEqual( $before, (int) $this->options['etherlabz_intercom_last_cron_run'] );
+		$this->assertLessThanOrEqual( time(), (int) $this->options['etherlabz_intercom_last_cron_run'] );
 	}
 }

@@ -49,17 +49,10 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="iws"/>
-				<element value="intercom_woo_sync"/>
+				<element value="etherlabz_intercom"/>
 				<element value="Etherlabz\Intercom_Woo_Sync"/>
 			</property>
 		</properties>
-		<!--
-			"iws" is intentionally short: it is the documented public hook/option
-			namespace (see README filter examples) and renaming would break
-			backwards compatibility for downstream integrations.
-		-->
-		<exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed"/>
 	</rule>
 
 	<!-- Allow snake_case namespaced class names (e.g. Intercom_API, Customer_Sync). -->

@@ -7,7 +7,7 @@
 (function ($) {
   "use strict";
 
-  var i18n = (iwsAdmin && iwsAdmin.i18n) ? iwsAdmin.i18n : {};
+  var i18n = (etherlabzIntercomAdmin && etherlabzIntercomAdmin.i18n) ? etherlabzIntercomAdmin.i18n : {};
 
   $(document).ready(function () {
     /* ---------------------------------------------------------------
@@ -21,7 +21,7 @@
 	   On load: hash wins, then localStorage, then the server's default.
 	   --------------------------------------------------------------- */
 
-    var STORAGE_KEY = "iws_active_tab";
+    var STORAGE_KEY = "etherlabz_intercom_active_tab";
 
     function activateTab(tab) {
       var $btn = $(".iws-tabs__tab[data-tab='" + tab + "']");
@@ -102,12 +102,12 @@
       var data = $.extend(
         {
           action: action,
-          nonce: iwsAdmin.nonce,
+          nonce: etherlabzIntercomAdmin.nonce,
         },
         extra || {},
       );
 
-      return $.post(iwsAdmin.ajaxUrl, data);
+      return $.post(etherlabzIntercomAdmin.ajaxUrl, data);
     }
 
     /* ---------------------------------------------------------------
@@ -123,7 +123,7 @@
       $spinner.addClass("is-active");
       $result.text("").removeClass("success error");
 
-      ajaxPost("iws_test_connection")
+      ajaxPost("etherlabz_intercom_test_connection")
         .done(function (res) {
           if (res.success) {
             $result.text(res.data.message).addClass("success");
@@ -153,7 +153,7 @@
       $spinner.addClass("is-active");
       $result.text("").removeClass("success error");
 
-      ajaxPost("iws_bulk_sync")
+      ajaxPost("etherlabz_intercom_bulk_sync")
         .done(function (res) {
           if (res.success) {
             $result.text(res.data.message).addClass("success");
@@ -178,7 +178,7 @@
      */
     function pollBulkStatus() {
       var interval = setInterval(function () {
-        ajaxPost("iws_bulk_sync_status").done(function (res) {
+        ajaxPost("etherlabz_intercom_bulk_sync_status").done(function (res) {
           if (!res.success) {
             clearInterval(interval);
             return;
@@ -229,7 +229,7 @@
         return;
       }
 
-      ajaxPost("iws_clear_log").done(function (res) {
+      ajaxPost("etherlabz_intercom_clear_log").done(function (res) {
         if (res.success) {
           $("#iws-log-table-wrap").html(
             $("<p>").addClass("iws-empty").text(i18n.noLogEntries || "No log entries yet."),
@@ -244,7 +244,7 @@
 	   --------------------------------------------------------------- */
 
     function refreshLog() {
-      ajaxPost("iws_get_log").done(function (res) {
+      ajaxPost("etherlabz_intercom_get_log").done(function (res) {
         if (!res.success || !res.data.log || 0 === res.data.log.length) {
           $("#iws-log-table-wrap").html(
             $("<p>").addClass("iws-empty").text(i18n.noLogEntries || "No log entries yet."),
@@ -297,7 +297,7 @@
       $spinner.addClass("is-active");
       $result.text("").removeClass("success error");
 
-      ajaxPost("iws_register_attributes")
+      ajaxPost("etherlabz_intercom_register_attributes")
         .done(function (res) {
           if (res.success) {
             $result.text(res.data.message).addClass("success");
@@ -338,7 +338,7 @@
       $spinner.addClass("is-active");
       $result.text("").removeClass("success error");
 
-      ajaxPost("iws_generate_fin_key")
+      ajaxPost("etherlabz_intercom_generate_fin_key")
         .done(function (res) {
           if (res.success) {
             $result.text(res.data.message).addClass("success");
@@ -412,7 +412,7 @@
       var status = $("#iws-filter-status").val() || "all";
       var actionQ = ($("#iws-filter-action").val() || "").trim();
 
-      ajaxPost("iws_get_log_filtered", {
+      ajaxPost("etherlabz_intercom_get_log_filtered", {
         status: status,
         action_q: actionQ,
         // Don't pass `since` — we always do a full re-render to handle filter changes.
@@ -552,8 +552,8 @@
        Segments — rule builder
        --------------------------------------------------------------- */
 
-    var segmentFields = (iwsAdmin.segments && iwsAdmin.segments.fields) || [];
-    var segmentOperators = (iwsAdmin.segments && iwsAdmin.segments.operators) || {};
+    var segmentFields = (etherlabzIntercomAdmin.segments && etherlabzIntercomAdmin.segments.fields) || [];
+    var segmentOperators = (etherlabzIntercomAdmin.segments && etherlabzIntercomAdmin.segments.operators) || {};
 
     function fieldType(fieldKey) {
       for (var i = 0; i < segmentFields.length; i++) {
@@ -752,7 +752,7 @@
       $spinner.addClass("is-active");
       $result.text("").removeClass("success error");
 
-      ajaxPost("iws_save_segments", { rules: JSON.stringify(collectRules()) })
+      ajaxPost("etherlabz_intercom_save_segments", { rules: JSON.stringify(collectRules()) })
         .done(function (res) {
           if (res.success) {
             $result.text(i18n.segmentsSaved || "Segment rules saved.").addClass("success");

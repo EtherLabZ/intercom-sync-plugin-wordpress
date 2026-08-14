@@ -40,7 +40,7 @@ final class Order_Events implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		if ( 'yes' !== get_option( 'iws_sync_orders', 'yes' ) ) {
+		if ( 'yes' !== get_option( 'etherlabz_intercom_sync_orders', 'yes' ) ) {
 			return;
 		}
 
@@ -85,9 +85,8 @@ final class Order_Events implements Registrable {
 		 */
 		$line_items = self::extract_line_items( $order );
 
-		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix; renaming would break downstream integrations.
 		$metadata = apply_filters(
-			'iws_order_event_metadata',
+			'etherlabz_intercom_order_event_metadata',
 			array(
 				'order_id'    => (string) $order_id,
 				'order_total' => $order->get_total(),
@@ -101,7 +100,6 @@ final class Order_Events implements Registrable {
 			$from,
 			$to
 		);
-		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
 		// Fire the event.
 		$api->create_event( $email, $event_name, $metadata );
@@ -109,7 +107,7 @@ final class Order_Events implements Registrable {
 		// Resolve the contact (creating it for guest checkouts) and update last-order attributes.
 		$customer_id = (int) $order->get_customer_id();
 
-		if ( 0 === $customer_id && 'yes' === get_option( 'iws_sync_guest_checkout', 'yes' ) ) {
+		if ( 0 === $customer_id && 'yes' === get_option( 'etherlabz_intercom_sync_guest_checkout', 'yes' ) ) {
 			// Guest checkout: upsert the contact directly from the order.
 			$api->upsert_contact( self::guest_contact_payload( $order ) );
 		}

@@ -36,7 +36,7 @@ class SubscriptionEventsTest extends TestCase {
 		$this->captured = array();
 
 		Functions\when( 'get_option' )->alias(
-			fn( string $key, $default = null ) => 'iws_access_token' === $key
+			fn( string $key, $default = null ) => 'etherlabz_intercom_access_token' === $key
 				? Encryption::encrypt( 'test-token' )
 				: ( $default ?? '' )
 		);

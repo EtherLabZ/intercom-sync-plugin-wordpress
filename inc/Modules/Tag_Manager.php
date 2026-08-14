@@ -38,7 +38,7 @@ final class Tag_Manager implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		if ( 'yes' !== get_option( 'iws_enable_purchase_tags', 'no' ) ) {
+		if ( 'yes' !== get_option( 'etherlabz_intercom_enable_purchase_tags', 'no' ) ) {
 			return;
 		}
 
@@ -108,9 +108,7 @@ final class Tag_Manager implements Registrable {
 			}
 		}
 
-		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix.
-		$tags = (array) apply_filters( 'iws_purchase_tags', array_values( array_unique( $tags ) ), $order );
-		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		$tags = (array) apply_filters( 'etherlabz_intercom_purchase_tags', array_values( array_unique( $tags ) ), $order );
 
 		return array_values( array_unique( array_filter( array_map( 'strval', $tags ) ) ) );
 	}

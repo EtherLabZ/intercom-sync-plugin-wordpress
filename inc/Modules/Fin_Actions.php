@@ -8,14 +8,14 @@
  * because customer notes can leak PII.
  *
  * Endpoints (each gated by its own option):
- *   POST /iws/v1/orders/{id}/cancel    — iws_fin_action_cancel_enabled
- *   POST /iws/v1/orders/{id}/refund    — iws_fin_action_refund_enabled
- *   POST /iws/v1/customer/note         — iws_fin_action_note_enabled
+ *   POST /etherlabz-intercom/v1/orders/{id}/cancel    — etherlabz_intercom_fin_action_cancel_enabled
+ *   POST /etherlabz-intercom/v1/orders/{id}/refund    — etherlabz_intercom_fin_action_refund_enabled
+ *   POST /etherlabz-intercom/v1/customer/note         — etherlabz_intercom_fin_action_note_enabled
  *
  * Authentication uses the same Bearer-token check as Fin_Connector, and
  * order write actions additionally require the caller's resolved email
  * (X-Intercom-Verified-Email preferred) to match the order's billing email.
- * Every successful + failed call is written to iws_sync_log so operators
+ * Every successful + failed call is written to etherlabz_intercom_sync_log so operators
  * have a full audit trail.
  *
  * @package Etherlabz\Intercom_Woo_Sync\Modules
@@ -44,9 +44,9 @@ final class Fin_Actions implements Registrable {
 	 * @var array<string, string>
 	 */
 	public const ACTION_OPTIONS = array(
-		'cancel' => 'iws_fin_action_cancel_enabled',
-		'refund' => 'iws_fin_action_refund_enabled',
-		'note'   => 'iws_fin_action_note_enabled',
+		'cancel' => 'etherlabz_intercom_fin_action_cancel_enabled',
+		'refund' => 'etherlabz_intercom_fin_action_refund_enabled',
+		'note'   => 'etherlabz_intercom_fin_action_note_enabled',
 	);
 
 	/**

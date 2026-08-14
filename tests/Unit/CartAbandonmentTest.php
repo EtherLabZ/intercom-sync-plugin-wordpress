@@ -36,11 +36,11 @@ class CartAbandonmentTest extends TestCase {
 		Monkey\setUp();
 
 		$this->options = array(
-			'iws_enable_cart_abandonment' => 'yes',
-			'iws_cart_abandon_minutes'    => 60,
-			'iws_access_token'            => Encryption::encrypt( 'test-token' ),
-			'iws_pending_carts'           => array(),
-			'iws_sync_log'                => array(),
+			'etherlabz_intercom_enable_cart_abandonment' => 'yes',
+			'etherlabz_intercom_cart_abandon_minutes'    => 60,
+			'etherlabz_intercom_access_token'            => Encryption::encrypt( 'test-token' ),
+			'etherlabz_intercom_pending_carts'           => array(),
+			'etherlabz_intercom_sync_log'                => array(),
 		);
 
 		$opts =& $this->options;
@@ -87,8 +87,8 @@ class CartAbandonmentTest extends TestCase {
 	}
 
 	public function test_run_does_nothing_when_feature_disabled(): void {
-		$this->options['iws_enable_cart_abandonment'] = 'no';
-		$this->options['iws_pending_carts']           = array(
+		$this->options['etherlabz_intercom_enable_cart_abandonment'] = 'no';
+		$this->options['etherlabz_intercom_pending_carts']           = array(
 			1 => array(
 				'email'      => 'a@b.com',
 				'cart_total' => 10.0,
@@ -100,11 +100,11 @@ class CartAbandonmentTest extends TestCase {
 
 		( new Cart_Abandonment() )->run();
 
-		$this->assertFalse( $this->options['iws_pending_carts'][1]['fired'] );
+		$this->assertFalse( $this->options['etherlabz_intercom_pending_carts'][1]['fired'] );
 	}
 
 	public function test_run_skips_carts_under_threshold(): void {
-		$this->options['iws_pending_carts'] = array(
+		$this->options['etherlabz_intercom_pending_carts'] = array(
 			1 => array(
 				'email'      => 'a@b.com',
 				'cart_total' => 10.0,
@@ -116,11 +116,11 @@ class CartAbandonmentTest extends TestCase {
 
 		( new Cart_Abandonment() )->run();
 
-		$this->assertFalse( $this->options['iws_pending_carts'][1]['fired'] );
+		$this->assertFalse( $this->options['etherlabz_intercom_pending_carts'][1]['fired'] );
 	}
 
 	public function test_run_fires_event_for_carts_over_threshold_and_marks_fired(): void {
-		$this->options['iws_pending_carts'] = array(
+		$this->options['etherlabz_intercom_pending_carts'] = array(
 			42 => array(
 				'email'      => 'late@example.com',
 				'cart_total' => 99.99,
@@ -133,12 +133,12 @@ class CartAbandonmentTest extends TestCase {
 
 		( new Cart_Abandonment() )->run();
 
-		$this->assertTrue( $this->options['iws_pending_carts'][42]['fired'] );
-		$this->assertArrayHasKey( 'fired_at', $this->options['iws_pending_carts'][42] );
+		$this->assertTrue( $this->options['etherlabz_intercom_pending_carts'][42]['fired'] );
+		$this->assertArrayHasKey( 'fired_at', $this->options['etherlabz_intercom_pending_carts'][42] );
 	}
 
 	public function test_run_skips_already_fired_carts(): void {
-		$this->options['iws_pending_carts'] = array(
+		$this->options['etherlabz_intercom_pending_carts'] = array(
 			1 => array(
 				'email'      => 'a@b.com',
 				'cart_total' => 10.0,
@@ -149,17 +149,17 @@ class CartAbandonmentTest extends TestCase {
 			),
 		);
 
-		$before = $this->options['iws_pending_carts'][1]['fired_at'];
+		$before = $this->options['etherlabz_intercom_pending_carts'][1]['fired_at'];
 
 		( new Cart_Abandonment() )->run();
 
 		// fired_at unchanged means the event was not re-sent.
-		$this->assertSame( $before, $this->options['iws_pending_carts'][1]['fired_at'] );
+		$this->assertSame( $before, $this->options['etherlabz_intercom_pending_carts'][1]['fired_at'] );
 	}
 
 	public function test_run_uses_default_threshold_for_misconfigured_minutes(): void {
-		$this->options['iws_cart_abandon_minutes'] = 1; // below the 5-minute floor.
-		$this->options['iws_pending_carts']        = array(
+		$this->options['etherlabz_intercom_cart_abandon_minutes'] = 1; // below the 5-minute floor.
+		$this->options['etherlabz_intercom_pending_carts']        = array(
 			1 => array(
 				'email'      => 'a@b.com',
 				'cart_total' => 10.0,
@@ -172,11 +172,11 @@ class CartAbandonmentTest extends TestCase {
 		( new Cart_Abandonment() )->run();
 
 		// Should NOT fire — the misconfigured value falls back to the 60-min default.
-		$this->assertFalse( $this->options['iws_pending_carts'][1]['fired'] );
+		$this->assertFalse( $this->options['etherlabz_intercom_pending_carts'][1]['fired'] );
 	}
 
 	public function test_run_drops_corrupt_entries(): void {
-		$this->options['iws_pending_carts'] = array(
+		$this->options['etherlabz_intercom_pending_carts'] = array(
 			1 => array(
 				'email'      => 'a@b.com',
 				'cart_total' => 10.0,
@@ -189,7 +189,7 @@ class CartAbandonmentTest extends TestCase {
 
 		( new Cart_Abandonment() )->run();
 
-		$this->assertArrayNotHasKey( 2, $this->options['iws_pending_carts'] );
-		$this->assertTrue( $this->options['iws_pending_carts'][1]['fired'] );
+		$this->assertArrayNotHasKey( 2, $this->options['etherlabz_intercom_pending_carts'] );
+		$this->assertTrue( $this->options['etherlabz_intercom_pending_carts'][1]['fired'] );
 	}
 }

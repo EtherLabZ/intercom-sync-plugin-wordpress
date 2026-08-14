@@ -4,7 +4,7 @@ Tags: woocommerce, intercom, crm, abandoned cart, fin
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,10 +83,15 @@ Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-CBC k
 
 == Changelog ==
 
-= 2.0.0 =
+= 2.1.0 =
 * Security: access tokens and secrets are now encrypted with AES-256-GCM using a random IV per value (previously AES-256-CBC with a static IV); existing stored values migrate automatically on next save.
 * Security: the settings screen no longer echoes stored tokens/secrets back into the page — fields render empty and leaving them blank keeps the stored value.
-* Security: Fin cancel/refund endpoints now verify the requesting customer's email against the order's billing email before acting.
+* Security: Fin cancel/refund endpoints now verify the requesting customer's email against the order's billing email before acting. If your Fin action config doesn't forward the customer email (header or `email` param), add it — these endpoints now require it.
+* Changed: all options, hooks, cron events, AJAX actions, and the REST namespace moved from the `iws_` prefix to `etherlabz_intercom_` (REST: `iws/v1` → `etherlabz-intercom/v1`). Existing settings migrate automatically on upgrade. Custom code hooking `iws_*` filters and Fin configs pointing at `iws/v1` URLs must be updated.
+* Changed: minimum PHP version is now 8.0 (the plugin already used PHP 8.0 syntax; the header now says so).
+* Improved: admin screen redesigned to match the Etherlabz design language.
+
+= 2.0.0 =
 * Fix: contact upserts now recover from HTTP 409 conflicts (including archived contacts) by updating the existing contact in place instead of failing.
 * Fix: events for an unknown email now create the contact and replay the event instead of returning HTTP 404 "User Not Found".
 * Fix: phone numbers are normalised to E.164 using the billing country, eliminating most HTTP 422 "phone is invalid" errors.
@@ -97,6 +102,9 @@ Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-CBC k
 * Persist the active admin tab across form submits and reloads.
 
 == Upgrade Notice ==
+
+= 2.1.0 =
+Security hardening (encryption, secret handling, Fin endpoint ownership checks) and a prefix rename with automatic settings migration. Update any custom `iws_*` filter hooks and Fin REST URLs (`iws/v1` → `etherlabz-intercom/v1`).
 
 = 2.0.0 =
 Resolves the most common sync errors (409 conflicts, 404 on events, 422 invalid phone) and logs the affected email on failure. Recommended for all users.

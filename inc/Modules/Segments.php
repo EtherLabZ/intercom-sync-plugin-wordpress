@@ -6,7 +6,7 @@
  * customer and applies matching tags in Intercom (e.g. "vip" when
  * total_orders >= 5 AND lifetime_value >= 200).
  *
- * Rule schema stored in the `iws_segment_rules` option:
+ * Rule schema stored in the `etherlabz_intercom_segment_rules` option:
  *   array<string, array{
  *     id: string,
  *     name: string,
@@ -65,8 +65,7 @@ final class Segments implements Registrable {
 	 */
 	public function register_hooks(): void {
 		// Apply segments after each customer sync.
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix.
-		add_action( 'iws_after_customer_sync', array( $this, 'apply_for_customer' ), 10, 2 );
+		add_action( 'etherlabz_intercom_after_customer_sync', array( $this, 'apply_for_customer' ), 10, 2 );
 	}
 
 	/**
@@ -123,12 +122,12 @@ final class Segments implements Registrable {
 	}
 
 	/**
-	 * Read rules from the iws_segment_rules option, normalised to an array.
+	 * Read rules from the etherlabz_intercom_segment_rules option, normalised to an array.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function get_rules(): array {
-		$raw = get_option( 'iws_segment_rules', array() );
+		$raw = get_option( 'etherlabz_intercom_segment_rules', array() );
 		return is_array( $raw ) ? $raw : array();
 	}
 

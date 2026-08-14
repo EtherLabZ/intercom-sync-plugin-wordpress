@@ -38,7 +38,7 @@ final class Fin_Connector implements Registrable {
 	/**
 	 * REST namespace.
 	 */
-	public const REST_NAMESPACE = 'iws/v1';
+	public const REST_NAMESPACE = 'etherlabz-intercom/v1';
 
 	/**
 	 * {@inheritDoc}
@@ -54,7 +54,7 @@ final class Fin_Connector implements Registrable {
 	 * arg is declared on routes. Order ID routes still declare 'id'.
 	 */
 	public function register_routes(): void {
-		// GET /wp-json/iws/v1/orders.
+		// GET /wp-json/etherlabz-intercom/v1/orders.
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/orders',
@@ -65,7 +65,7 @@ final class Fin_Connector implements Registrable {
 			)
 		);
 
-		// GET /wp-json/iws/v1/orders/details -> pass order ID in header X-Intercom-Verified-OrderId.
+		// GET /wp-json/etherlabz-intercom/v1/orders/details -> pass order ID in header X-Intercom-Verified-OrderId.
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/orders/details',
@@ -76,7 +76,7 @@ final class Fin_Connector implements Registrable {
 			)
 		);
 
-		// GET /wp-json/iws/v1/customer.
+		// GET /wp-json/etherlabz-intercom/v1/customer.
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/customer',
@@ -111,7 +111,7 @@ final class Fin_Connector implements Registrable {
 		}
 
 		$provided = substr( $header, 7 );
-		$stored   = Encryption::decrypt( (string) get_option( 'iws_fin_api_key', '' ) );
+		$stored   = Encryption::decrypt( (string) get_option( 'etherlabz_intercom_fin_api_key', '' ) );
 
 		if ( '' === $stored || ! hash_equals( $stored, $provided ) ) {
 			return new WP_Error(

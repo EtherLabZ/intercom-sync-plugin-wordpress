@@ -46,7 +46,7 @@ final class Autoloader {
 		$relative = substr( $class_name, strlen( self::PREFIX ) );
 
 		// Convert namespace separators to directory separators.
-		$file = INTERCOM_WOO_SYNC_PATH . 'inc/' . str_replace( '\\', '/', $relative ) . '.php';
+		$file = ETHERLABZ_INTERCOM_PATH . 'inc/' . str_replace( '\\', '/', $relative ) . '.php';
 
 		if ( file_exists( $file ) ) {
 			require_once $file;

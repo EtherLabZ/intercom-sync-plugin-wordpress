@@ -26,16 +26,16 @@ final class Ajax_Handler implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		add_action( 'wp_ajax_iws_test_connection', array( $this, 'test_connection' ) );
-		add_action( 'wp_ajax_iws_bulk_sync', array( $this, 'bulk_sync' ) );
-		add_action( 'wp_ajax_iws_clear_log', array( $this, 'clear_log' ) );
-		add_action( 'wp_ajax_iws_get_log', array( $this, 'get_log' ) );
-		add_action( 'wp_ajax_iws_get_log_filtered', array( $this, 'get_log_filtered' ) );
-		add_action( 'wp_ajax_iws_bulk_sync_status', array( $this, 'bulk_sync_status' ) );
-		add_action( 'wp_ajax_iws_register_attributes', array( $this, 'register_attributes' ) );
-		add_action( 'wp_ajax_iws_generate_fin_key', array( $this, 'generate_fin_key' ) );
-		add_action( 'wp_ajax_iws_save_segments', array( $this, 'save_segments' ) );
-		add_action( 'wp_ajax_iws_run_cron_now', array( $this, 'run_cron_now' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_test_connection', array( $this, 'test_connection' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_bulk_sync', array( $this, 'bulk_sync' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_clear_log', array( $this, 'clear_log' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_get_log', array( $this, 'get_log' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_get_log_filtered', array( $this, 'get_log_filtered' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_bulk_sync_status', array( $this, 'bulk_sync_status' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_register_attributes', array( $this, 'register_attributes' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_generate_fin_key', array( $this, 'generate_fin_key' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_save_segments', array( $this, 'save_segments' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_run_cron_now', array( $this, 'run_cron_now' ) );
 	}
 
 	/**
@@ -102,7 +102,7 @@ final class Ajax_Handler implements Registrable {
 		wp_send_json_success(
 			array(
 				'running' => Bulk_Sync::is_running(),
-				'offset'  => (int) get_option( 'iws_bulk_sync_offset', 0 ),
+				'offset'  => (int) get_option( 'etherlabz_intercom_bulk_sync_offset', 0 ),
 			)
 		);
 	}
@@ -113,7 +113,7 @@ final class Ajax_Handler implements Registrable {
 	public function clear_log(): void {
 		$this->verify_request();
 
-		update_option( 'iws_sync_log', array() );
+		update_option( 'etherlabz_intercom_sync_log', array() );
 
 		wp_send_json_success(
 			array(
@@ -128,7 +128,7 @@ final class Ajax_Handler implements Registrable {
 	public function get_log(): void {
 		$this->verify_request();
 
-		$log = get_option( 'iws_sync_log', array() );
+		$log = get_option( 'etherlabz_intercom_sync_log', array() );
 
 		if ( ! is_array( $log ) ) {
 			$log = array();
@@ -264,7 +264,7 @@ final class Ajax_Handler implements Registrable {
 		$this->verify_request();
 
 		$key = Fin_Connector::generate_api_key();
-		update_option( 'iws_fin_api_key', Encryption::encrypt( $key ) );
+		update_option( 'etherlabz_intercom_fin_api_key', Encryption::encrypt( $key ) );
 
 		wp_send_json_success(
 			array(
@@ -290,7 +290,7 @@ final class Ajax_Handler implements Registrable {
 		$action = sanitize_text_field( wp_unslash( (string) ( $_POST['action_q'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$since  = sanitize_text_field( wp_unslash( (string) ( $_POST['since'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-		$log = get_option( 'iws_sync_log', array() );
+		$log = get_option( 'etherlabz_intercom_sync_log', array() );
 		if ( ! is_array( $log ) ) {
 			$log = array();
 		}
@@ -342,7 +342,7 @@ final class Ajax_Handler implements Registrable {
 		$rules = is_string( $raw ) ? json_decode( $raw, true ) : $raw;
 
 		$sanitized = Segments::sanitize_rules( $rules );
-		update_option( 'iws_segment_rules', $sanitized, false );
+		update_option( 'etherlabz_intercom_segment_rules', $sanitized, false );
 
 		wp_send_json_success(
 			array(
@@ -364,8 +364,8 @@ final class Ajax_Handler implements Registrable {
 			spawn_cron();
 		}
 
-		do_action( 'iws_bulk_sync_cron' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ public hook prefix.
-		do_action( 'iws_cart_abandonment_cron' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ public hook prefix.
+		do_action( 'etherlabz_intercom_bulk_sync_cron' );
+		do_action( 'etherlabz_intercom_cart_abandonment_cron' );
 
 		Cron_Health::stamp_run();
 
@@ -380,7 +380,7 @@ final class Ajax_Handler implements Registrable {
 	 * Verify nonce and capability.
 	 */
 	private function verify_request(): void {
-		if ( ! check_ajax_referer( 'iws_admin_nonce', 'nonce', false ) ) {
+		if ( ! check_ajax_referer( 'etherlabz_intercom_admin_nonce', 'nonce', false ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'etherlabz-intercom-sync' ) ), 403 );
 		}
 

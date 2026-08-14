@@ -10,7 +10,7 @@
  * Plugin Name:       Etherlabz Intercom Sync for WooCommerce
  * Plugin URI:        https://github.com/EtherLabZ/intercom-sync-plugin-wordpress
  * Description:       The complete Intercom integration for WooCommerce. Syncs customers, order events, cart funnel, abandoned carts, subscriptions and purchase tags — with HMAC-secure Messenger embed. Built by Etherlabz.
- * Version:           2.0.0
+ * Version:           2.1.0
  * Author:            Etherlabz
  * Author URI:        https://etherlabz.com
  * License:           GPL-2.0-or-later
@@ -37,22 +37,22 @@ function constants(): void {
 	/**
 	 * File path to the plugin's main file.
 	 */
-	define( 'INTERCOM_WOO_SYNC_FILE', __FILE__ );
+	define( 'ETHERLABZ_INTERCOM_FILE', __FILE__ );
 
 	/**
 	 * Version of the plugin.
 	 */
-	define( 'INTERCOM_WOO_SYNC_VERSION', '2.0.0' );
+	define( 'ETHERLABZ_INTERCOM_VERSION', '2.1.0' );
 
 	/**
 	 * Root path to the plugin directory.
 	 */
-	define( 'INTERCOM_WOO_SYNC_PATH', plugin_dir_path( INTERCOM_WOO_SYNC_FILE ) );
+	define( 'ETHERLABZ_INTERCOM_PATH', plugin_dir_path( ETHERLABZ_INTERCOM_FILE ) );
 
 	/**
 	 * Root URL to the plugin directory.
 	 */
-	define( 'INTERCOM_WOO_SYNC_URL', plugin_dir_url( INTERCOM_WOO_SYNC_FILE ) );
+	define( 'ETHERLABZ_INTERCOM_URL', plugin_dir_url( ETHERLABZ_INTERCOM_FILE ) );
 }
 
 constants();

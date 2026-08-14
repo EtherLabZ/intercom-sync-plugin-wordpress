@@ -49,25 +49,25 @@ final class Assets implements Registrable {
 
 		wp_enqueue_style(
 			self::ADMIN_CSS,
-			INTERCOM_WOO_SYNC_URL . 'assets/css/admin.css',
+			ETHERLABZ_INTERCOM_URL . 'assets/css/admin.css',
 			array(),
-			INTERCOM_WOO_SYNC_VERSION
+			ETHERLABZ_INTERCOM_VERSION
 		);
 
 		wp_enqueue_script(
 			self::ADMIN_JS,
-			INTERCOM_WOO_SYNC_URL . 'assets/js/admin.js',
+			ETHERLABZ_INTERCOM_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
-			INTERCOM_WOO_SYNC_VERSION,
+			ETHERLABZ_INTERCOM_VERSION,
 			true
 		);
 
 		wp_localize_script(
 			self::ADMIN_JS,
-			'iwsAdmin',
+			'etherlabzIntercomAdmin',
 			array(
 				'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'iws_admin_nonce' ),
+				'nonce'    => wp_create_nonce( 'etherlabz_intercom_admin_nonce' ),
 				'segments' => array(
 					'fields'    => self::segment_fields(),
 					'operators' => self::segment_operators(),

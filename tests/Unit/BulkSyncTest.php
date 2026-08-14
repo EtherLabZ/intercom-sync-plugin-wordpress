@@ -81,7 +81,7 @@ class BulkSyncTest extends TestCase {
 
 		Bulk_Sync::start();
 
-		$this->assertSame( 0, $updatedOptions['iws_bulk_sync_offset'] );
+		$this->assertSame( 0, $updatedOptions['etherlabz_intercom_bulk_sync_offset'] );
 	}
 
 	public function test_start_sets_running_flag_to_yes(): void {
@@ -102,7 +102,7 @@ class BulkSyncTest extends TestCase {
 
 		Bulk_Sync::start();
 
-		$this->assertSame( 'yes', $updatedOptions['iws_bulk_sync_running'] );
+		$this->assertSame( 'yes', $updatedOptions['etherlabz_intercom_bulk_sync_running'] );
 	}
 
 	public function test_start_schedules_batch_cron_when_not_already_scheduled(): void {
@@ -124,7 +124,7 @@ class BulkSyncTest extends TestCase {
 
 		Bulk_Sync::start();
 
-		$this->assertSame( 'iws_bulk_sync_batch', $scheduledHook );
+		$this->assertSame( 'etherlabz_intercom_bulk_sync_batch', $scheduledHook );
 	}
 
 	public function test_start_does_not_double_schedule_if_event_exists(): void {

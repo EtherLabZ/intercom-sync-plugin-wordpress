@@ -56,7 +56,7 @@ class MessengerTest extends TestCase {
 
 		Functions\when( 'get_option' )->alias(
 			static function ( string $key ) use ( $encrypted ) {
-				return 'iws_hmac_secret' === $key ? $encrypted : '';
+				return 'etherlabz_intercom_hmac_secret' === $key ? $encrypted : '';
 			}
 		);
 
@@ -71,7 +71,7 @@ class MessengerTest extends TestCase {
 
 		Functions\when( 'get_option' )->alias(
 			static function ( string $key ) use ( $encrypted ) {
-				return 'iws_hmac_secret' === $key ? $encrypted : '';
+				return 'etherlabz_intercom_hmac_secret' === $key ? $encrypted : '';
 			}
 		);
 
@@ -88,7 +88,7 @@ class MessengerTest extends TestCase {
 
 		Functions\when( 'get_option' )->alias(
 			static function ( string $key ) use ( $encrypted ) {
-				return 'iws_hmac_secret' === $key ? $encrypted : '';
+				return 'etherlabz_intercom_hmac_secret' === $key ? $encrypted : '';
 			}
 		);
 
@@ -105,7 +105,7 @@ class MessengerTest extends TestCase {
 	public function test_get_app_id_returns_trimmed_value(): void {
 		Functions\when( 'get_option' )->alias(
 			static function ( string $key ) {
-				return 'iws_app_id' === $key ? '   abc123  ' : '';
+				return 'etherlabz_intercom_app_id' === $key ? '   abc123  ' : '';
 			}
 		);
 
@@ -128,7 +128,7 @@ class MessengerTest extends TestCase {
 
 		Functions\when( 'get_option' )->alias(
 			static function ( string $key ) use ( $encrypted ) {
-				return 'iws_hmac_secret' === $key ? $encrypted : '';
+				return 'etherlabz_intercom_hmac_secret' === $key ? $encrypted : '';
 			}
 		);
 

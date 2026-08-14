@@ -30,7 +30,7 @@ final class Admin_Screen implements Registrable {
 	public function register_hooks(): void {
 		add_action( 'admin_menu', array( $this, 'register_screen' ) );
 		add_filter(
-			'plugin_action_links_' . plugin_basename( INTERCOM_WOO_SYNC_FILE ),
+			'plugin_action_links_' . plugin_basename( ETHERLABZ_INTERCOM_FILE ),
 			array( $this, 'add_action_links' )
 		);
 	}
@@ -78,6 +78,6 @@ final class Admin_Screen implements Registrable {
 			return;
 		}
 
-		require_once INTERCOM_WOO_SYNC_PATH . 'templates/admin-screen.php';
+		require_once ETHERLABZ_INTERCOM_PATH . 'templates/admin-screen.php';
 	}
 }

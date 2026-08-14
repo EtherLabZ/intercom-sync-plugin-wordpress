@@ -169,18 +169,18 @@ Every payload that crosses into Intercom is filterable. Use these to add custom 
 
 | Hook | Filters | Args after value |
 |---|---|---|
-| `iws_contact_payload` | The contact payload sent on customer create/update | `WC_Customer $customer` |
-| `iws_order_event_metadata` | Per-order event metadata | `WC_Order $order, string $from, string $to` |
-| `iws_cart_event_metadata` | Cart-funnel event metadata | `string $event_name, string $email` |
-| `iws_cart_abandoned_metadata` | Abandoned-cart event metadata | `int $user_id, array $entry` |
-| `iws_subscription_event_metadata` | Subscription event metadata | `WC_Subscription $sub, string $event_name` |
-| `iws_purchase_tags` | Tag list before apply/remove | `WC_Order $order` |
-| `iws_messenger_settings` | `window.intercomSettings` payload | `WP_User\|null $user` |
+| `etherlabz_intercom_contact_payload` | The contact payload sent on customer create/update | `WC_Customer $customer` |
+| `etherlabz_intercom_order_event_metadata` | Per-order event metadata | `WC_Order $order, string $from, string $to` |
+| `etherlabz_intercom_cart_event_metadata` | Cart-funnel event metadata | `string $event_name, string $email` |
+| `etherlabz_intercom_cart_abandoned_metadata` | Abandoned-cart event metadata | `int $user_id, array $entry` |
+| `etherlabz_intercom_subscription_event_metadata` | Subscription event metadata | `WC_Subscription $sub, string $event_name` |
+| `etherlabz_intercom_purchase_tags` | Tag list before apply/remove | `WC_Order $order` |
+| `etherlabz_intercom_messenger_settings` | `window.intercomSettings` payload | `WP_User\|null $user` |
 
 Example — add a VIP attribute to every contact synced:
 
 ```php
-add_filter( 'iws_contact_payload', function ( array $data, WC_Customer $customer ) {
+add_filter( 'etherlabz_intercom_contact_payload', function ( array $data, WC_Customer $customer ) {
     if ( (float) $customer->get_total_spent() > 1000 ) {
         $data['custom_attributes']['vip'] = true;
     }
@@ -191,7 +191,7 @@ add_filter( 'iws_contact_payload', function ( array $data, WC_Customer $customer
 Example — strip PII from order events:
 
 ```php
-add_filter( 'iws_order_event_metadata', function ( array $metadata ) {
+add_filter( 'etherlabz_intercom_order_event_metadata', function ( array $metadata ) {
     unset( $metadata['line_items'] ); // omit per-product breakdown
     return $metadata;
 } );
@@ -204,9 +204,9 @@ add_filter( 'iws_order_event_metadata', function ( array $metadata ) {
 Authenticated with a Bearer key (generated on the **Fin / Data** tab):
 
 ```
-GET /wp-json/iws/v1/orders?email={email}
-GET /wp-json/iws/v1/orders/{id}
-GET /wp-json/iws/v1/customer?email={email}
+GET /wp-json/etherlabz-intercom/v1/orders?email={email}
+GET /wp-json/etherlabz-intercom/v1/orders/{id}
+GET /wp-json/etherlabz-intercom/v1/customer?email={email}
 
 Authorization: Bearer <your-fin-api-key>
 ```
@@ -257,7 +257,7 @@ Coverage focuses on the pure-logic surfaces: encryption round-trip, settings san
 - All admin AJAX endpoints require `manage_options` capability **and** a `wp_create_nonce` check.
 - Front-end Messenger uses **HMAC-SHA256** (`user_hash`) when an Identity Verification Secret is configured, preventing contact impersonation.
 - The Fin REST connector is gated by a per-install Bearer key generated client-side and **never displayed in plaintext after the first reveal**.
-- Uninstall removes every `iws_` option and clears every `iws_*_cron` schedule.
+- Uninstall removes every `etherlabz_intercom_` option and clears every `etherlabz_intercom_*_cron` schedule.
 
 ---
 
