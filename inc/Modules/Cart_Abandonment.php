@@ -39,11 +39,14 @@ final class Cart_Abandonment implements Registrable {
 	public function register_hooks(): void {
 		add_action( self::CRON_HOOK, array( $this, 'run' ) );
 
-		// Self-schedule the cron when the feature is enabled.
+		// Self-schedule the cron when the feature is enabled; unschedule it
+		// when the feature is turned off so no orphaned event keeps firing.
 		if ( 'yes' === get_option( 'iws_enable_cart_abandonment', 'no' ) ) {
 			if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 				wp_schedule_event( time() + 60, 'hourly', self::CRON_HOOK );
 			}
+		} elseif ( wp_next_scheduled( self::CRON_HOOK ) ) {
+			wp_clear_scheduled_hook( self::CRON_HOOK );
 		}
 	}
 

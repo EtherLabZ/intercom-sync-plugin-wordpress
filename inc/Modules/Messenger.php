@@ -51,8 +51,10 @@ final class Messenger implements Registrable {
 
 		$settings = $this->build_settings_payload( $app_id );
 
-		// Encode safely for inline JS.
-		$json = wp_json_encode( $settings, JSON_UNESCAPED_SLASHES );
+		// Encode safely for an inline <script> context: the HEX flags escape
+		// <, >, &, and quotes so no string value (e.g. a user display name)
+		// can break out of the script block.
+		$json = wp_json_encode( $settings, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
 
 		if ( false === $json ) {
 			return;

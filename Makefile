@@ -28,7 +28,7 @@ help: ## Show this help message.
 # ---------------------------------------------------------------------------
 
 .PHONY: build
-build: ## Build the production ZIP → dist/intercom-woo-sync-<version>.zip
+build: ## Build the production ZIP → dist/etherlabz-intercom-sync-<version>.zip
 	@bash bin/build.sh
 
 .PHONY: version

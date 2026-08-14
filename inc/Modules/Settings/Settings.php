@@ -48,7 +48,7 @@ final class Settings implements Registrable {
 			'iws_access_token',
 			array(
 				'type'              => 'string',
-				'sanitize_callback' => array( self::class, 'sanitize_token' ),
+				'sanitize_callback' => array( self::class, 'sanitize_access_token' ),
 				'default'           => '',
 			)
 		);
@@ -78,7 +78,7 @@ final class Settings implements Registrable {
 			'iws_hmac_secret',
 			array(
 				'type'              => 'string',
-				'sanitize_callback' => array( self::class, 'sanitize_token' ),
+				'sanitize_callback' => array( self::class, 'sanitize_hmac_secret' ),
 				'default'           => '',
 			)
 		);
@@ -319,23 +319,24 @@ final class Settings implements Registrable {
 	 * Render the access-token field.
 	 */
 	public function render_token_field(): void {
-		$raw   = (string) get_option( 'iws_access_token', '' );
-		$plain = Encryption::decrypt( $raw );
+		$raw    = (string) get_option( 'iws_access_token', '' );
+		$stored = '' !== Encryption::decrypt( $raw );
 
-		// Show a masked placeholder if a token is stored; otherwise show empty.
-		$display = '' !== $plain
-			? str_repeat( '*', max( 0, strlen( $plain ) - 8 ) ) . substr( $plain, -8 )
-			: '';
+		// The decrypted token is never echoed back into the page. When one is
+		// stored, the field renders empty with a masked placeholder; leaving it
+		// blank on save keeps the stored value.
+		$placeholder = $stored
+			? __( '•••••••• (a token is stored — leave blank to keep it)', 'etherlabz-intercom-sync' )
+			: __( 'Paste your Intercom access token', 'etherlabz-intercom-sync' );
 
 		printf(
-			'<input type="password" id="iws_access_token" name="iws_access_token" value="%s" class="regular-text" autocomplete="off" placeholder="%s" />',
-			esc_attr( $plain ),
-			esc_attr__( 'Paste your Intercom access token', 'etherlabz-intercom-sync' )
+			'<input type="password" id="iws_access_token" name="iws_access_token" value="" class="regular-text" autocomplete="off" placeholder="%s" />',
+			esc_attr( $placeholder )
 		);
 		echo '<p class="description">';
-		if ( '' !== $plain ) {
+		if ( $stored ) {
 			echo '<span class="dashicons dashicons-lock iws-lock-icon"></span> ';
-			echo esc_html__( 'Token is stored encrypted.', 'etherlabz-intercom-sync' ) . ' ';
+			echo esc_html__( 'Token is stored encrypted. Enter a new token to replace it.', 'etherlabz-intercom-sync' ) . ' ';
 		}
 		echo esc_html__( 'Found in Intercom → Settings → Developers → Access Token.', 'etherlabz-intercom-sync' );
 		echo '</p>';
@@ -369,16 +370,19 @@ final class Settings implements Registrable {
 	 * Render the HMAC identity verification secret field.
 	 */
 	public function render_hmac_field(): void {
-		$raw   = (string) get_option( 'iws_hmac_secret', '' );
-		$plain = Encryption::decrypt( $raw );
+		$raw    = (string) get_option( 'iws_hmac_secret', '' );
+		$stored = '' !== Encryption::decrypt( $raw );
+
+		$placeholder = $stored
+			? __( '•••••••• (a secret is stored — leave blank to keep it)', 'etherlabz-intercom-sync' )
+			: __( 'Paste your Intercom identity verification secret', 'etherlabz-intercom-sync' );
 
 		printf(
-			'<input type="password" id="iws_hmac_secret" name="iws_hmac_secret" value="%s" class="regular-text" autocomplete="off" placeholder="%s" />',
-			esc_attr( $plain ),
-			esc_attr__( 'Paste your Intercom identity verification secret', 'etherlabz-intercom-sync' )
+			'<input type="password" id="iws_hmac_secret" name="iws_hmac_secret" value="" class="regular-text" autocomplete="off" placeholder="%s" />',
+			esc_attr( $placeholder )
 		);
 		echo '<p class="description">';
-		if ( '' !== $plain ) {
+		if ( $stored ) {
 			echo '<span class="dashicons dashicons-lock iws-lock-icon"></span> ';
 			echo esc_html__( 'Secret is stored encrypted.', 'etherlabz-intercom-sync' ) . ' ';
 		}
@@ -536,16 +540,44 @@ final class Settings implements Registrable {
 	/**
 	 * Sanitize and encrypt the access token before saving.
 	 *
-	 * Unlike sanitize_text_field, this only trims whitespace so we
-	 * don't accidentally mangle valid token characters.
+	 * @param mixed $value The raw input value.
+	 */
+	public static function sanitize_access_token( $value ): string {
+		return self::sanitize_secret( $value, 'iws_access_token' );
+	}
+
+	/**
+	 * Sanitize and encrypt the HMAC identity verification secret before saving.
 	 *
 	 * @param mixed $value The raw input value.
 	 */
-	public static function sanitize_token( $value ): string {
+	public static function sanitize_hmac_secret( $value ): string {
+		return self::sanitize_secret( $value, 'iws_hmac_secret' );
+	}
+
+	/**
+	 * Shared sanitizer for write-only secret fields.
+	 *
+	 * The admin field always renders empty (the secret is never echoed back),
+	 * so an empty submission means "keep what's stored" rather than "clear".
+	 * Values are re-encrypted with the current format on every save, which
+	 * also migrates legacy-format ciphertexts forward.
+	 *
+	 * Unlike sanitize_text_field, this only trims whitespace so we
+	 * don't accidentally mangle valid token characters.
+	 *
+	 * @param mixed  $value  The raw input value.
+	 * @param string $option Option name holding the currently stored value.
+	 */
+	private static function sanitize_secret( $value, string $option ): string {
 		$value = is_string( $value ) ? trim( $value ) : '';
 
 		if ( '' === $value ) {
-			return '';
+			$existing = (string) get_option( $option, '' );
+
+			// Migrate legacy-format (or plaintext) stored values forward.
+			$plain = Encryption::decrypt( $existing );
+			return '' === $plain ? '' : Encryption::encrypt( $plain );
 		}
 
 		// If the submitted value is already encrypted (edge case), return as-is.

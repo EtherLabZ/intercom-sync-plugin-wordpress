@@ -30,7 +30,7 @@ class EncryptionTest extends TestCase {
 
 	public function test_encrypt_returns_prefixed_string(): void {
 		$result = Encryption::encrypt( 'my-secret-token' );
-		$this->assertStringStartsWith( 'enc::', $result );
+		$this->assertStringStartsWith( 'enc2::', $result );
 	}
 
 	public function test_encrypt_output_differs_from_plaintext(): void {
@@ -39,10 +39,10 @@ class EncryptionTest extends TestCase {
 		$this->assertNotSame( $plain, $result );
 	}
 
-	public function test_encrypt_produces_consistent_results_for_same_input(): void {
-		// Same key/IV → same ciphertext (AES-256-CBC is deterministic for fixed key+IV).
+	public function test_encrypt_produces_different_ciphertexts_for_same_input(): void {
+		// Random per-value IV → two encryptions of the same plaintext must differ.
 		$plain = 'consistent-input';
-		$this->assertSame( Encryption::encrypt( $plain ), Encryption::encrypt( $plain ) );
+		$this->assertNotSame( Encryption::encrypt( $plain ), Encryption::encrypt( $plain ) );
 	}
 
 	// ------------------------------------------------------------------
@@ -68,11 +68,33 @@ class EncryptionTest extends TestCase {
 	}
 
 	public function test_decrypt_returns_empty_string_for_corrupted_ciphertext(): void {
-		// Manually corrupt the ciphertext portion.
-		$corrupted = 'enc::not-valid-base64!!!';
-		$result    = Encryption::decrypt( $corrupted );
-		// Should return '' (failed decode) rather than throwing.
-		$this->assertSame( '', $result );
+		// Manually corrupt the ciphertext portion of both formats.
+		$this->assertSame( '', Encryption::decrypt( 'enc2::not-valid-base64!!!' ) );
+		$this->assertSame( '', Encryption::decrypt( 'enc::not-valid-base64!!!' ) );
+	}
+
+	public function test_decrypt_returns_empty_string_for_tampered_ciphertext(): void {
+		// GCM authenticates the ciphertext — flipping a byte must fail closed.
+		$encrypted = Encryption::encrypt( 'tamper-me' );
+		$raw       = base64_decode( substr( $encrypted, strlen( 'enc2::' ) ), true );
+		$flipped   = $raw;
+		$last      = strlen( $flipped ) - 1;
+
+		$flipped[ $last ] = chr( ord( $flipped[ $last ] ) ^ 0xFF );
+
+		$this->assertSame( '', Encryption::decrypt( 'enc2::' . base64_encode( $flipped ) ) );
+	}
+
+	public function test_decrypt_reads_legacy_cbc_format(): void {
+		// Reproduce the pre-2.0 storage format: AES-256-CBC, static IV
+		// derived from AUTH_SALT, enc:: prefix.
+		$plain = 'legacy-stored-token';
+		$key   = hash( 'sha256', AUTH_KEY, true );
+		$iv    = substr( hash( 'sha256', AUTH_SALT, true ), 0, 16 );
+
+		$legacy = 'enc::' . base64_encode( (string) openssl_encrypt( $plain, 'aes-256-cbc', $key, 0, $iv ) );
+
+		$this->assertSame( $plain, Encryption::decrypt( $legacy ) );
 	}
 
 	public function test_roundtrip_preserves_special_characters(): void {
@@ -88,6 +110,8 @@ class EncryptionTest extends TestCase {
 	// ------------------------------------------------------------------
 
 	public function test_is_encrypted_returns_true_for_enc_prefixed_value(): void {
+		$this->assertTrue( Encryption::is_encrypted( 'enc2::somebase64data' ) );
+		// Legacy format still counts as encrypted.
 		$this->assertTrue( Encryption::is_encrypted( 'enc::somebase64data' ) );
 	}
 

@@ -12,7 +12,9 @@
  *   POST /iws/v1/orders/{id}/refund    — iws_fin_action_refund_enabled
  *   POST /iws/v1/customer/note         — iws_fin_action_note_enabled
  *
- * Authentication uses the same Bearer-token check as Fin_Connector.
+ * Authentication uses the same Bearer-token check as Fin_Connector, and
+ * order write actions additionally require the caller's resolved email
+ * (X-Intercom-Verified-Email preferred) to match the order's billing email.
  * Every successful + failed call is written to iws_sync_log so operators
  * have a full audit trail.
  *
@@ -135,10 +137,9 @@ final class Fin_Actions implements Registrable {
 	public function cancel_order( WP_REST_Request $request ) {
 		$id = (int) $request['id'];
 
-		$order = wc_get_order( $id );
-		if ( ! $order ) {
-			Intercom_API::log( 'error', 'fin-action/cancel', "Order #{$id} not found." );
-			return new WP_Error( 'not_found', __( 'Order not found.', 'etherlabz-intercom-sync' ), array( 'status' => 404 ) );
+		$order = $this->resolve_owned_order( $request, $id, 'cancel' );
+		if ( is_wp_error( $order ) ) {
+			return $order;
 		}
 
 		if ( $order->has_status( array( 'completed', 'refunded', 'cancelled' ) ) ) {
@@ -183,10 +184,9 @@ final class Fin_Actions implements Registrable {
 	public function refund_order( WP_REST_Request $request ) {
 		$id = (int) $request['id'];
 
-		$order = wc_get_order( $id );
-		if ( ! $order ) {
-			Intercom_API::log( 'error', 'fin-action/refund', "Order #{$id} not found." );
-			return new WP_Error( 'not_found', __( 'Order not found.', 'etherlabz-intercom-sync' ), array( 'status' => 404 ) );
+		$order = $this->resolve_owned_order( $request, $id, 'refund' );
+		if ( is_wp_error( $order ) ) {
+			return $order;
 		}
 
 		// Amount: numeric param. Defaults to remaining (full) refund.
@@ -204,7 +204,8 @@ final class Fin_Actions implements Registrable {
 			$amount = $max_refund;
 		}
 
-		if ( $amount <= 0 || $amount > $max_refund ) {
+		// Epsilon guard so float noise can't reject a legitimate full refund.
+		if ( $amount <= 0 || $amount > $max_refund + 0.000001 ) {
 			Intercom_API::log( 'error', 'fin-action/refund', "Order #{$id} refund amount {$amount} out of range (max {$max_refund})." );
 			return new WP_Error(
 				'invalid_amount',
@@ -260,12 +261,15 @@ final class Fin_Actions implements Registrable {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function add_customer_note( WP_REST_Request $request ) {
-		$email = sanitize_email( (string) $request->get_header( 'X-Email' ) );
-		if ( ! is_email( $email ) ) {
-			$email = sanitize_email( (string) $request->get_param( 'email' ) );
-		}
-		if ( ! is_email( $email ) ) {
-			return new WP_Error( 'missing_email', __( 'Provide a valid X-Email header or email param.', 'etherlabz-intercom-sync' ), array( 'status' => 400 ) );
+		// Same resolution order as the read endpoints: the Intercom-verified
+		// header wins over the untrusted X-Email fallback.
+		$email = ( new Fin_Connector() )->resolve_email( $request );
+		if ( is_wp_error( $email ) ) {
+			$param = sanitize_email( (string) $request->get_param( 'email' ) );
+			if ( ! is_email( $param ) ) {
+				return new WP_Error( 'missing_email', __( 'Provide a valid X-Intercom-Verified-Email / X-Email header or email param.', 'etherlabz-intercom-sync' ), array( 'status' => 400 ) );
+			}
+			$email = $param;
 		}
 
 		$note = sanitize_textarea_field( (string) $request->get_param( 'note' ) );
@@ -300,5 +304,54 @@ final class Fin_Actions implements Registrable {
 				'order_id' => $order->get_id(),
 			)
 		);
+	}
+
+	// ----------------------------------------------------------------------
+	// Helpers
+	// ----------------------------------------------------------------------
+
+	/**
+	 * Load an order and verify the caller's resolved email owns it.
+	 *
+	 * Write actions must never act on an order the requesting customer
+	 * doesn't own, so this mirrors the read path in Fin_Connector: resolve
+	 * the email (verified header preferred), then require it to match the
+	 * order's billing email. Mismatch and missing order both return 404 so
+	 * the existence of other customers' orders is not leaked.
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @param int             $id      Order ID from the route.
+	 * @param string          $action  Action label for the audit log.
+	 *
+	 * @return \WC_Order|WP_Error
+	 */
+	private function resolve_owned_order( WP_REST_Request $request, int $id, string $action ) {
+		$connector = new Fin_Connector();
+
+		// Header ladder first (verified header preferred), then the `email`
+		// param — same fallback add_customer_note offers, so all three write
+		// endpoints accept the same caller shapes.
+		$email = $connector->resolve_email( $request );
+		if ( is_wp_error( $email ) ) {
+			$param = sanitize_email( (string) $request->get_param( 'email' ) );
+			if ( ! is_email( $param ) ) {
+				return $email;
+			}
+			$email = $param;
+		}
+
+		$order = wc_get_order( $id );
+
+		if ( ! $order instanceof \WC_Order ) {
+			Intercom_API::log( 'error', "fin-action/{$action}", "Order #{$id} not found." );
+			return new WP_Error( 'not_found', __( 'Order not found.', 'etherlabz-intercom-sync' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $connector->email_matches_order( $email, $order ) ) {
+			Intercom_API::log( 'error', "fin-action/{$action}", "Order #{$id} ownership mismatch for {$email}." );
+			return new WP_Error( 'not_found', __( 'Order not found.', 'etherlabz-intercom-sync' ), array( 'status' => 404 ) );
+		}
+
+		return $order;
 	}
 }

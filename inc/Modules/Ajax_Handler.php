@@ -57,7 +57,7 @@ final class Ajax_Handler implements Registrable {
 			wp_send_json_error( array( 'message' => $message ) );
 		}
 
-		$name = $result['name'] ?? $result['email'] ?? 'Unknown';
+		$name = $result['name'] ?? $result['email'] ?? __( 'Unknown', 'etherlabz-intercom-sync' );
 
 		wp_send_json_success(
 			array(

@@ -133,7 +133,7 @@ The workflow:
 - Checks out the tag
 - Runs `bin/build.sh` to produce the ZIP
 - Creates a GitHub release named `vX.Y.Z` with auto-generated release notes
-- Attaches `dist/intercom-woo-sync-X.Y.Z.zip` as the release asset
+- Attaches `dist/etherlabz-intercom-sync-X.Y.Z.zip` as the release asset
 
 ---
 
@@ -143,11 +143,11 @@ The workflow:
 2. Verify the ZIP is attached.
 3. Download and inspect the ZIP:
    ```bash
-   unzip -l intercom-woo-sync-X.Y.Z.zip
+   unzip -l etherlabz-intercom-sync-X.Y.Z.zip
    ```
    Check that:
    - No `vendor/`, `tests/`, `.claude/`, `composer.json`, `Makefile`, `bin/` are present.
-   - The inner folder is exactly `intercom-woo-sync/`.
+   - The inner folder is exactly `etherlabz-intercom-sync/`.
    - `intercom-woo-sync.php`, `uninstall.php`, `inc/`, `assets/`, `templates/`, `languages/` are all present.
 
 4. For pre-releases: confirm **Pre-release** badge is shown.

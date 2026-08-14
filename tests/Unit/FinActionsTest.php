@@ -50,6 +50,11 @@ class FinActionsTest extends TestCase {
 		Functions\when( 'current_time' )->justReturn( '2026-05-07 12:00:00' );
 		Functions\when( 'is_wp_error' )->alias( fn( $t ) => $t instanceof \WP_Error );
 		Functions\when( 'sanitize_text_field' )->alias( static fn( $s ) => trim( (string) $s ) );
+		Functions\when( 'sanitize_textarea_field' )->alias( static fn( $s ) => trim( (string) $s ) );
+		Functions\when( 'sanitize_email' )->alias( static fn( $s ) => trim( (string) $s ) );
+		Functions\when( 'is_email' )->alias(
+			static fn( $s ) => false !== filter_var( (string) $s, FILTER_VALIDATE_EMAIL )
+		);
 		Functions\when( '__' )->returnArg();
 		Functions\when( 'rest_ensure_response' )->alias(
 			static fn( $data ) => (object) array(
@@ -101,8 +106,32 @@ class FinActionsTest extends TestCase {
 		$this->assertSame( 'not_found', $result->get_error_code() );
 	}
 
+	public function test_cancel_order_requires_a_caller_email(): void {
+		$order = $this->make_order( 'customer@example.com' );
+
+		Functions\when( 'wc_get_order' )->justReturn( $order );
+
+		$module = new Fin_Actions();
+		$result = $module->cancel_order( $this->make_request( 1, array(), array() ) ); // no email headers.
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'missing_lookup_key', $result->get_error_code() );
+	}
+
+	public function test_cancel_order_returns_404_when_email_does_not_own_order(): void {
+		$order = $this->make_order( 'owner@example.com' );
+
+		Functions\when( 'wc_get_order' )->justReturn( $order );
+
+		$module = new Fin_Actions();
+		$result = $module->cancel_order( $this->make_request( 1 ) ); // caller is customer@example.com.
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'not_found', $result->get_error_code() );
+	}
+
 	public function test_cancel_order_rejects_terminal_states(): void {
-		$order = Mockery::mock( \WC_Order::class );
+		$order = $this->make_order( 'customer@example.com' );
 		$order->shouldReceive( 'has_status' )->andReturn( true );
 		$order->shouldReceive( 'get_status' )->andReturn( 'completed' );
 
@@ -116,7 +145,7 @@ class FinActionsTest extends TestCase {
 	}
 
 	public function test_cancel_order_updates_status_when_valid(): void {
-		$order = Mockery::mock( \WC_Order::class );
+		$order = $this->make_order( 'customer@example.com' );
 		$order->shouldReceive( 'has_status' )->andReturn( false );
 		$order->shouldReceive( 'update_status' )
 			->with( 'cancelled', Mockery::any() )
@@ -137,7 +166,7 @@ class FinActionsTest extends TestCase {
 	// ------------------------------------------------------------------
 
 	public function test_refund_order_rejects_amount_above_remaining(): void {
-		$order = Mockery::mock( \WC_Order::class );
+		$order = $this->make_order( 'customer@example.com' );
 		$order->shouldReceive( 'get_total' )->andReturn( '100.00' );
 		$order->shouldReceive( 'get_total_refunded' )->andReturn( '40.00' );
 		// Max refundable: 60.
@@ -154,7 +183,7 @@ class FinActionsTest extends TestCase {
 	}
 
 	public function test_refund_order_rejects_zero_or_negative_amount(): void {
-		$order = Mockery::mock( \WC_Order::class );
+		$order = $this->make_order( 'customer@example.com' );
 		$order->shouldReceive( 'get_total' )->andReturn( '100.00' );
 		$order->shouldReceive( 'get_total_refunded' )->andReturn( '0.00' );
 
@@ -172,8 +201,20 @@ class FinActionsTest extends TestCase {
 		);
 	}
 
+	public function test_refund_order_returns_404_when_email_does_not_own_order(): void {
+		$order = $this->make_order( 'owner@example.com' );
+
+		Functions\when( 'wc_get_order' )->justReturn( $order );
+
+		$module = new Fin_Actions();
+		$result = $module->refund_order( $this->make_request( 1, array( 'amount' => 10 ) ) );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'not_found', $result->get_error_code() );
+	}
+
 	public function test_refund_order_creates_refund_at_default_full_amount(): void {
-		$order = Mockery::mock( \WC_Order::class );
+		$order = $this->make_order( 'customer@example.com' );
 		$order->shouldReceive( 'get_total' )->andReturn( '50.00' );
 		$order->shouldReceive( 'get_total_refunded' )->andReturn( '0.00' );
 
@@ -198,23 +239,46 @@ class FinActionsTest extends TestCase {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Build a minimal WP_REST_Request mock with the given id and params.
+	 * Build a minimal WP_REST_Request mock with the given id, params, and headers.
 	 *
-	 * @param int                $id     Path parameter `id`.
-	 * @param array<string, mixed> $params Body / query params.
+	 * Defaults to a verified-email header owning `customer@example.com`, which
+	 * matches the order built by make_order() in the happy-path tests.
+	 *
+	 * @param int                   $id      Path parameter `id`.
+	 * @param array<string, mixed>  $params  Body / query params.
+	 * @param array<string, string>|null $headers Headers (name => value); null = verified customer@example.com.
 	 *
 	 * @return \WP_REST_Request
 	 */
-	private function make_request( int $id, array $params = array() ) {
+	private function make_request( int $id, array $params = array(), ?array $headers = null ) {
+		if ( null === $headers ) {
+			$headers = array( 'X-Intercom-Verified-Email' => 'customer@example.com' );
+		}
+
 		$request = Mockery::mock( '\WP_REST_Request' );
 		$request->shouldReceive( 'offsetGet' )->with( 'id' )->andReturn( $id );
 		$request->shouldReceive( 'get_param' )->andReturnUsing(
 			static fn( $k ) => $params[ $k ] ?? null
 		);
-		$request->shouldReceive( 'get_header' )->andReturn( '' );
+		$request->shouldReceive( 'get_header' )->andReturnUsing(
+			static fn( $name ) => $headers[ $name ] ?? ''
+		);
 
 		// PHPUnit's ArrayAccess: $request['id'] -> offsetGet('id').
 		// Mockery handles offsetGet via the magic method declarations on WP_REST_Request.
 		return $request;
+	}
+
+	/**
+	 * Build an order mock with a billing email (for the ownership check).
+	 *
+	 * @param string $billing_email The order's billing email.
+	 *
+	 * @return \Mockery\MockInterface&\WC_Order
+	 */
+	private function make_order( string $billing_email ) {
+		$order = Mockery::mock( \WC_Order::class );
+		$order->shouldReceive( 'get_billing_email' )->andReturn( $billing_email );
+		return $order;
 	}
 }

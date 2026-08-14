@@ -532,7 +532,8 @@ final class Intercom_API {
 			)
 		);
 
-		// Keep the last 100 entries.
-		update_option( 'iws_sync_log', array_slice( $log, 0, 100 ) );
+		// Keep the last 100 entries. Not autoloaded — the log is only read
+		// on the admin screen, not on every front-end request.
+		update_option( 'iws_sync_log', array_slice( $log, 0, 100 ), false );
 	}
 }
