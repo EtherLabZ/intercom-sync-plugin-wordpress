@@ -13,24 +13,22 @@ use Etherlabz\Intercom_Woo_Sync\Modules\Settings\Admin_Screen;
 use Etherlabz\Intercom_Woo_Sync\Modules\Bulk_Sync;
 use Etherlabz\Intercom_Woo_Sync\Core\Encryption;
 
-// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 // Reason: these are file-scope locals in an included template, not true globals.
-// The iws_ prefix is used but WPCS rejects it as too short to count as valid.
-$iws_log = get_option( 'iws_sync_log', array() );
-if ( ! is_array( $iws_log ) ) {
-	$iws_log = array();
+// The etherlabz_intercom_ prefix is used but WPCS rejects it as too short to count as valid.
+$etherlabz_intercom_log = get_option( 'etherlabz_intercom_sync_log', array() );
+if ( ! is_array( $etherlabz_intercom_log ) ) {
+	$etherlabz_intercom_log = array();
 }
 
-$iws_bulk_running   = Bulk_Sync::is_running();
-$iws_has_token      = '' !== get_option( 'iws_access_token', '' );
-$iws_fin_key_raw    = (string) get_option( 'iws_fin_api_key', '' );
-$iws_has_fin_key    = '' !== $iws_fin_key_raw;
-$iws_fin_key_masked = '';
-if ( $iws_has_fin_key ) {
-	$iws_plain          = Encryption::decrypt( $iws_fin_key_raw );
-	$iws_fin_key_masked = substr( $iws_plain, 0, 8 ) . str_repeat( '*', max( 0, strlen( $iws_plain ) - 8 ) );
+$etherlabz_intercom_bulk_running   = Bulk_Sync::is_running();
+$etherlabz_intercom_has_token      = '' !== get_option( 'etherlabz_intercom_access_token', '' );
+$etherlabz_intercom_fin_key_raw    = (string) get_option( 'etherlabz_intercom_fin_api_key', '' );
+$etherlabz_intercom_has_fin_key    = '' !== $etherlabz_intercom_fin_key_raw;
+$etherlabz_intercom_fin_key_masked = '';
+if ( $etherlabz_intercom_has_fin_key ) {
+	$etherlabz_intercom_plain          = Encryption::decrypt( $etherlabz_intercom_fin_key_raw );
+	$etherlabz_intercom_fin_key_masked = substr( $etherlabz_intercom_plain, 0, 8 ) . str_repeat( '*', max( 0, strlen( $etherlabz_intercom_plain ) - 8 ) );
 }
-// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 ?>
 
 <div class="wrap iws-wrap">
@@ -40,7 +38,7 @@ if ( $iws_has_fin_key ) {
 		<div class="iws-header__title">
 			<span class="dashicons dashicons-share iws-header__icon"></span>
 			<h1><?php esc_html_e( 'Etherlabz Intercom Sync', 'etherlabz-intercom-sync' ); ?></h1>
-			<span class="iws-header__version">v<?php echo esc_html( INTERCOM_WOO_SYNC_VERSION ); ?></span>
+			<span class="iws-header__version">v<?php echo esc_html( ETHERLABZ_INTERCOM_VERSION ); ?></span>
 		</div>
 		<p class="iws-header__desc">
 			<?php esc_html_e( 'The complete Intercom integration for WooCommerce — customers, order events, cart funnel, abandoned carts, subscriptions and tags.', 'etherlabz-intercom-sync' ); ?>
@@ -94,7 +92,7 @@ if ( $iws_has_fin_key ) {
 
 			<div class="iws-actions">
 				<?php submit_button( __( 'Save Settings', 'etherlabz-intercom-sync' ), 'primary', 'submit', false ); ?>
-				<button type="button" id="iws-test-connection" class="button button-secondary" <?php disabled( ! $iws_has_token ); ?>>
+				<button type="button" id="iws-test-connection" class="button button-secondary" <?php disabled( ! $etherlabz_intercom_has_token ); ?>>
 					<span class="dashicons dashicons-yes-alt"></span>
 					<?php esc_html_e( 'Test Connection', 'etherlabz-intercom-sync' ); ?>
 				</button>
@@ -113,7 +111,7 @@ if ( $iws_has_fin_key ) {
 			</p>
 
 			<div class="iws-bulk-status" id="iws-bulk-status">
-				<?php if ( $iws_bulk_running ) : ?>
+				<?php if ( $etherlabz_intercom_bulk_running ) : ?>
 					<span class="iws-badge iws-badge--running">
 						<span class="dashicons dashicons-update iws-spin"></span>
 						<?php esc_html_e( 'Running…', 'etherlabz-intercom-sync' ); ?>
@@ -123,7 +121,7 @@ if ( $iws_has_fin_key ) {
 						printf(
 							/* translators: %d: number of customers processed so far. */
 							esc_html__( '%d customers processed so far', 'etherlabz-intercom-sync' ),
-							(int) get_option( 'iws_bulk_sync_offset', 0 )
+							(int) get_option( 'etherlabz_intercom_bulk_sync_offset', 0 )
 						);
 						?>
 					</span>
@@ -135,7 +133,7 @@ if ( $iws_has_fin_key ) {
 			</div>
 
 			<div class="iws-actions iws-mt-16">
-				<button type="button" id="iws-start-bulk-sync" class="button button-primary" <?php disabled( $iws_bulk_running || ! $iws_has_token ); ?>>
+				<button type="button" id="iws-start-bulk-sync" class="button button-primary" <?php disabled( $etherlabz_intercom_bulk_running || ! $etherlabz_intercom_has_token ); ?>>
 					<span class="dashicons dashicons-update"></span>
 					<?php esc_html_e( 'Start Bulk Sync', 'etherlabz-intercom-sync' ); ?>
 				</button>
@@ -167,7 +165,7 @@ if ( $iws_has_fin_key ) {
 				<code>last_order_date</code>
 			</div>
 			<div class="iws-actions iws-mt-16">
-				<button type="button" id="iws-register-attrs" class="button button-primary" <?php disabled( ! $iws_has_token ); ?>>
+				<button type="button" id="iws-register-attrs" class="button button-primary" <?php disabled( ! $etherlabz_intercom_has_token ); ?>>
 					<span class="dashicons dashicons-database-add"></span>
 					<?php esc_html_e( 'Register Attributes in Intercom', 'etherlabz-intercom-sync' ); ?>
 				</button>
@@ -188,15 +186,15 @@ if ( $iws_has_fin_key ) {
 			<table class="iws-endpoint-table">
 				<tr>
 					<td class="iws-endpoint-label"><?php esc_html_e( 'Orders by email', 'etherlabz-intercom-sync' ); ?></td>
-					<td><code>GET <?php echo esc_html( rest_url( 'iws/v1/orders?email={email}' ) ); ?></code></td>
+					<td><code>GET <?php echo esc_html( rest_url( 'etherlabz-intercom/v1/orders?email={email}' ) ); ?></code></td>
 				</tr>
 				<tr>
 					<td class="iws-endpoint-label"><?php esc_html_e( 'Order by ID', 'etherlabz-intercom-sync' ); ?></td>
-					<td><code>GET <?php echo esc_html( rest_url( 'iws/v1/orders/{id}' ) ); ?></code></td>
+					<td><code>GET <?php echo esc_html( rest_url( 'etherlabz-intercom/v1/orders/{id}' ) ); ?></code></td>
 				</tr>
 				<tr>
 					<td class="iws-endpoint-label"><?php esc_html_e( 'Customer by email', 'etherlabz-intercom-sync' ); ?></td>
-					<td><code>GET <?php echo esc_html( rest_url( 'iws/v1/customer?email={email}' ) ); ?></code></td>
+					<td><code>GET <?php echo esc_html( rest_url( 'etherlabz-intercom/v1/customer?email={email}' ) ); ?></code></td>
 				</tr>
 				<tr>
 					<td class="iws-endpoint-label"><?php esc_html_e( 'Auth header', 'etherlabz-intercom-sync' ); ?></td>
@@ -205,9 +203,9 @@ if ( $iws_has_fin_key ) {
 			</table>
 
 			<h3 class="iws-mt-20"><?php esc_html_e( 'API Key', 'etherlabz-intercom-sync' ); ?></h3>
-			<?php if ( $iws_has_fin_key ) : ?>
+			<?php if ( $etherlabz_intercom_has_fin_key ) : ?>
 				<div class="iws-key-display">
-					<code id="iws-fin-key-value"><?php echo esc_html( $iws_fin_key_masked ); ?></code>
+					<code id="iws-fin-key-value"><?php echo esc_html( $etherlabz_intercom_fin_key_masked ); ?></code>
 					<span class="iws-badge iws-badge--success"><?php esc_html_e( 'Active', 'etherlabz-intercom-sync' ); ?></span>
 				</div>
 			<?php else : ?>
@@ -215,10 +213,10 @@ if ( $iws_has_fin_key ) {
 			<?php endif; ?>
 
 			<div class="iws-actions iws-mt-12">
-				<button type="button" id="iws-generate-fin-key" class="button <?php echo esc_attr( $iws_has_fin_key ? 'button-secondary' : 'button-primary' ); ?>">
+				<button type="button" id="iws-generate-fin-key" class="button <?php echo esc_attr( $etherlabz_intercom_has_fin_key ? 'button-secondary' : 'button-primary' ); ?>">
 					<span class="dashicons dashicons-admin-network"></span>
 					<?php
-					echo $iws_has_fin_key
+					echo $etherlabz_intercom_has_fin_key
 						? esc_html__( 'Regenerate API Key', 'etherlabz-intercom-sync' )
 						: esc_html__( 'Generate API Key', 'etherlabz-intercom-sync' );
 					?>
@@ -254,47 +252,47 @@ if ( $iws_has_fin_key ) {
 
 				<div class="iws-fin-action-row">
 					<div class="iws-fin-action-row__meta">
-						<div class="iws-fin-action-row__name">POST /iws/v1/orders/{id}/cancel</div>
+						<div class="iws-fin-action-row__name">POST /etherlabz-intercom/v1/orders/{id}/cancel</div>
 						<div class="iws-fin-action-row__desc">
 							<?php esc_html_e( 'Allow Fin to cancel a customer order. Only orders in non-terminal states can be cancelled.', 'etherlabz-intercom-sync' ); ?>
 						</div>
 						<span class="iws-fin-action-row__danger"><?php esc_html_e( 'Dangerous', 'etherlabz-intercom-sync' ); ?></span>
 					</div>
 					<label class="iws-toggle">
-						<input type="checkbox" name="iws_fin_action_cancel_enabled" value="yes"
+						<input type="checkbox" name="etherlabz_intercom_fin_action_cancel_enabled" value="yes"
 							class="iws-fin-action-toggle" data-action="cancel"
-							<?php checked( get_option( 'iws_fin_action_cancel_enabled', 'no' ), 'yes' ); ?> />
+							<?php checked( get_option( 'etherlabz_intercom_fin_action_cancel_enabled', 'no' ), 'yes' ); ?> />
 						<span class="iws-toggle__slider"></span>
 					</label>
 				</div>
 
 				<div class="iws-fin-action-row">
 					<div class="iws-fin-action-row__meta">
-						<div class="iws-fin-action-row__name">POST /iws/v1/orders/{id}/refund</div>
+						<div class="iws-fin-action-row__name">POST /etherlabz-intercom/v1/orders/{id}/refund</div>
 						<div class="iws-fin-action-row__desc">
 							<?php esc_html_e( 'Allow Fin to issue a full or partial refund. Amount and reason are accepted as POST params.', 'etherlabz-intercom-sync' ); ?>
 						</div>
 						<span class="iws-fin-action-row__danger"><?php esc_html_e( 'Dangerous', 'etherlabz-intercom-sync' ); ?></span>
 					</div>
 					<label class="iws-toggle">
-						<input type="checkbox" name="iws_fin_action_refund_enabled" value="yes"
+						<input type="checkbox" name="etherlabz_intercom_fin_action_refund_enabled" value="yes"
 							class="iws-fin-action-toggle" data-action="refund"
-							<?php checked( get_option( 'iws_fin_action_refund_enabled', 'no' ), 'yes' ); ?> />
+							<?php checked( get_option( 'etherlabz_intercom_fin_action_refund_enabled', 'no' ), 'yes' ); ?> />
 						<span class="iws-toggle__slider"></span>
 					</label>
 				</div>
 
 				<div class="iws-fin-action-row">
 					<div class="iws-fin-action-row__meta">
-						<div class="iws-fin-action-row__name">POST /iws/v1/customer/note</div>
+						<div class="iws-fin-action-row__name">POST /etherlabz-intercom/v1/customer/note</div>
 						<div class="iws-fin-action-row__desc">
 							<?php esc_html_e( 'Allow Fin to attach a private note to the customer\'s most recent order. Useful for handover from chat to human support.', 'etherlabz-intercom-sync' ); ?>
 						</div>
 					</div>
 					<label class="iws-toggle">
-						<input type="checkbox" name="iws_fin_action_note_enabled" value="yes"
+						<input type="checkbox" name="etherlabz_intercom_fin_action_note_enabled" value="yes"
 							class="iws-fin-action-toggle" data-action="note"
-							<?php checked( get_option( 'iws_fin_action_note_enabled', 'no' ), 'yes' ); ?> />
+							<?php checked( get_option( 'etherlabz_intercom_fin_action_note_enabled', 'no' ), 'yes' ); ?> />
 						<span class="iws-toggle__slider"></span>
 					</label>
 				</div>
@@ -321,7 +319,7 @@ if ( $iws_has_fin_key ) {
 				</li>
 				<li><?php esc_html_e( 'Create a new Custom Action with these settings:', 'etherlabz-intercom-sync' ); ?>
 					<ul class="iws-setup-steps__sub">
-						<li><strong>URL:</strong> <code><?php echo esc_html( rest_url( 'iws/v1/orders' ) ); ?></code></li>
+						<li><strong>URL:</strong> <code><?php echo esc_html( rest_url( 'etherlabz-intercom/v1/orders' ) ); ?></code></li>
 						<li><strong>Method:</strong> GET</li>
 						<li><strong>Header:</strong> <code>Authorization: Bearer YOUR_KEY</code></li>
 						<li><strong>Query param:</strong> <code>email</code> = the customer's email (use Intercom variable)</li>
@@ -349,7 +347,7 @@ if ( $iws_has_fin_key ) {
 			</p>
 
 			<div id="iws-rules-list"
-				data-rules="<?php echo esc_attr( (string) wp_json_encode( array_values( (array) get_option( 'iws_segment_rules', array() ) ) ) ); ?>">
+				data-rules="<?php echo esc_attr( (string) wp_json_encode( array_values( (array) get_option( 'etherlabz_intercom_segment_rules', array() ) ) ) ); ?>">
 				<p class="iws-empty iws-rules-empty"><?php esc_html_e( 'No rules yet. Click "Add Rule" to create one.', 'etherlabz-intercom-sync' ); ?></p>
 			</div>
 
@@ -400,7 +398,7 @@ if ( $iws_has_fin_key ) {
 			</div>
 
 			<div id="iws-log-table-wrap">
-				<?php if ( empty( $iws_log ) ) : ?>
+				<?php if ( empty( $etherlabz_intercom_log ) ) : ?>
 					<p class="iws-empty"><?php esc_html_e( 'No log entries yet.', 'etherlabz-intercom-sync' ); ?></p>
 				<?php else : ?>
 					<table class="widefat striped iws-log-table">
@@ -413,18 +411,18 @@ if ( $iws_has_fin_key ) {
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $iws_log as $iws_entry ) : // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>
+							<?php foreach ( $etherlabz_intercom_log as $etherlabz_intercom_entry ) : ?>
 								<tr>
-									<td><code><?php echo esc_html( $iws_entry['time'] ?? '' ); ?></code></td>
+									<td><code><?php echo esc_html( $etherlabz_intercom_entry['time'] ?? '' ); ?></code></td>
 									<td>
-										<?php if ( 'success' === ( $iws_entry['status'] ?? '' ) ) : ?>
+										<?php if ( 'success' === ( $etherlabz_intercom_entry['status'] ?? '' ) ) : ?>
 											<span class="iws-badge iws-badge--success"><?php esc_html_e( 'OK', 'etherlabz-intercom-sync' ); ?></span>
 										<?php else : ?>
 											<span class="iws-badge iws-badge--error"><?php esc_html_e( 'Error', 'etherlabz-intercom-sync' ); ?></span>
 										<?php endif; ?>
 									</td>
-									<td><code><?php echo esc_html( $iws_entry['action'] ?? '' ); ?></code></td>
-									<td><?php echo esc_html( $iws_entry['msg'] ?? '' ); ?></td>
+									<td><code><?php echo esc_html( $etherlabz_intercom_entry['action'] ?? '' ); ?></code></td>
+									<td><?php echo esc_html( $etherlabz_intercom_entry['msg'] ?? '' ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
@@ -452,7 +450,7 @@ if ( $iws_has_fin_key ) {
 			<?php esc_html_e( 'Source on GitHub', 'etherlabz-intercom-sync' ); ?>
 		</a>
 		<span class="iws-footer__sep" aria-hidden="true">&middot;</span>
-		<span class="iws-footer__version">v<?php echo esc_html( INTERCOM_WOO_SYNC_VERSION ); ?></span>
+		<span class="iws-footer__version">v<?php echo esc_html( ETHERLABZ_INTERCOM_VERSION ); ?></span>
 	</div>
 
 </div>

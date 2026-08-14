@@ -15,7 +15,7 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 /**
  * Plugin option prefix.
  */
-const OPTION_PREFIX = 'iws_';
+const OPTION_PREFIX = 'etherlabz_intercom_';
 
 /**
  * Run uninstaller — handles multisite.
@@ -79,9 +79,15 @@ function uninstall(): void {
 
 	foreach ( $options as $option ) {
 		delete_option( $option );
+
+		// Pre-2.1 installs stored the same options under the iws_ prefix.
+		delete_option( 'iws_' . substr( $option, strlen( OPTION_PREFIX ) ) );
 	}
 
-	// Clear any scheduled cron events.
+	// Clear any scheduled cron events (current and pre-2.1 hook names).
+	wp_clear_scheduled_hook( 'etherlabz_intercom_bulk_sync_cron' );
+	wp_clear_scheduled_hook( 'etherlabz_intercom_bulk_sync_batch' );
+	wp_clear_scheduled_hook( 'etherlabz_intercom_cart_abandonment_cron' );
 	wp_clear_scheduled_hook( 'iws_bulk_sync_cron' );
 	wp_clear_scheduled_hook( 'iws_bulk_sync_batch' );
 	wp_clear_scheduled_hook( 'iws_cart_abandonment_cron' );

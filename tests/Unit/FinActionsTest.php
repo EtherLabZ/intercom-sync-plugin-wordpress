@@ -79,9 +79,9 @@ class FinActionsTest extends TestCase {
 	}
 
 	public function test_is_enabled_reads_correct_option_per_action(): void {
-		$this->options['iws_fin_action_cancel_enabled'] = 'yes';
-		$this->options['iws_fin_action_refund_enabled'] = 'no';
-		$this->options['iws_fin_action_note_enabled']   = 'yes';
+		$this->options['etherlabz_intercom_fin_action_cancel_enabled'] = 'yes';
+		$this->options['etherlabz_intercom_fin_action_refund_enabled'] = 'no';
+		$this->options['etherlabz_intercom_fin_action_note_enabled']   = 'yes';
 
 		$this->assertTrue( Fin_Actions::is_enabled( 'cancel' ) );
 		$this->assertFalse( Fin_Actions::is_enabled( 'refund' ) );

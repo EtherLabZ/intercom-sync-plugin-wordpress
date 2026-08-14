@@ -26,7 +26,7 @@ final class Cart_Abandonment implements Registrable {
 	/**
 	 * The cron hook name.
 	 */
-	public const CRON_HOOK = 'iws_cart_abandonment_cron';
+	public const CRON_HOOK = 'etherlabz_intercom_cart_abandonment_cron';
 
 	/**
 	 * Default abandonment threshold in minutes.
@@ -41,7 +41,7 @@ final class Cart_Abandonment implements Registrable {
 
 		// Self-schedule the cron when the feature is enabled; unschedule it
 		// when the feature is turned off so no orphaned event keeps firing.
-		if ( 'yes' === get_option( 'iws_enable_cart_abandonment', 'no' ) ) {
+		if ( 'yes' === get_option( 'etherlabz_intercom_enable_cart_abandonment', 'no' ) ) {
 			if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 				wp_schedule_event( time() + 60, 'hourly', self::CRON_HOOK );
 			}
@@ -54,11 +54,11 @@ final class Cart_Abandonment implements Registrable {
 	 * Iterate over pending carts and fire abandonment events for stale ones.
 	 */
 	public function run(): void {
-		if ( 'yes' !== get_option( 'iws_enable_cart_abandonment', 'no' ) ) {
+		if ( 'yes' !== get_option( 'etherlabz_intercom_enable_cart_abandonment', 'no' ) ) {
 			return;
 		}
 
-		$threshold_minutes = (int) get_option( 'iws_cart_abandon_minutes', self::DEFAULT_THRESHOLD_MINUTES );
+		$threshold_minutes = (int) get_option( 'etherlabz_intercom_cart_abandon_minutes', self::DEFAULT_THRESHOLD_MINUTES );
 
 		if ( $threshold_minutes < 5 ) {
 			$threshold_minutes = self::DEFAULT_THRESHOLD_MINUTES;
@@ -116,14 +116,12 @@ final class Cart_Abandonment implements Registrable {
 				'last_updated_at' => $updated_at,
 			);
 
-			// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix.
 			$metadata = (array) apply_filters(
-				'iws_cart_abandoned_metadata',
+				'etherlabz_intercom_cart_abandoned_metadata',
 				$metadata,
 				$user_id,
 				$entry
 			);
-			// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
 			$result = $api->create_event( $email, 'cart-abandoned', $metadata );
 
@@ -135,7 +133,7 @@ final class Cart_Abandonment implements Registrable {
 		}
 
 		if ( $dirty ) {
-			update_option( 'iws_pending_carts', $pending, false );
+			update_option( 'etherlabz_intercom_pending_carts', $pending, false );
 		}
 	}
 

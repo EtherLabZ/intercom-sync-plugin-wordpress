@@ -77,7 +77,7 @@ class SettingsTest extends TestCase {
 	}
 
 	public function test_empty_input_keeps_the_stored_token(): void {
-		$this->options['iws_access_token'] = Encryption::encrypt( 'stored-token' );
+		$this->options['etherlabz_intercom_access_token'] = Encryption::encrypt( 'stored-token' );
 
 		$result = Settings::sanitize_access_token( '' );
 
@@ -87,7 +87,7 @@ class SettingsTest extends TestCase {
 
 	public function test_empty_input_migrates_stored_plaintext_to_encrypted(): void {
 		// Pre-encryption installs stored the token as plain text.
-		$this->options['iws_access_token'] = 'legacy-plaintext-token';
+		$this->options['etherlabz_intercom_access_token'] = 'legacy-plaintext-token';
 
 		$result = Settings::sanitize_access_token( '' );
 
@@ -123,7 +123,7 @@ class SettingsTest extends TestCase {
 	}
 
 	public function test_hmac_secret_reads_its_own_option_when_blank(): void {
-		$this->options['iws_hmac_secret'] = Encryption::encrypt( 'hmac-secret' );
+		$this->options['etherlabz_intercom_hmac_secret'] = Encryption::encrypt( 'hmac-secret' );
 
 		$result = Settings::sanitize_hmac_secret( '' );
 

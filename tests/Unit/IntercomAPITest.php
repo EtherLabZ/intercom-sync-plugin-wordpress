@@ -101,7 +101,7 @@ class IntercomAPITest extends TestCase {
 
 		Intercom_API::log( 'success', '/me', 'HTTP 200' );
 
-		$log = $stored['iws_sync_log'];
+		$log = $stored['etherlabz_intercom_sync_log'];
 
 		$this->assertCount( 1, $log );
 		$this->assertSame( 'success', $log[0]['status'] );
@@ -112,7 +112,7 @@ class IntercomAPITest extends TestCase {
 
 	public function test_log_prepends_newest_entry_first(): void {
 		$stored = array(
-			'iws_sync_log' => array(
+			'etherlabz_intercom_sync_log' => array(
 				array(
 					'time'   => '2026-05-04 11:00:00',
 					'status' => 'success',
@@ -139,7 +139,7 @@ class IntercomAPITest extends TestCase {
 
 		Intercom_API::log( 'error', '/events', 'HTTP 500' );
 
-		$log = $stored['iws_sync_log'];
+		$log = $stored['etherlabz_intercom_sync_log'];
 
 		// Newest entry is first.
 		$this->assertSame( 'HTTP 500', $log[0]['msg'] );
@@ -159,7 +159,7 @@ class IntercomAPITest extends TestCase {
 			)
 		);
 
-		$stored = array( 'iws_sync_log' => $existing );
+		$stored = array( 'etherlabz_intercom_sync_log' => $existing );
 
 		Functions\when( 'get_option' )->alias(
 			function ( string $key, $default = null ) use ( &$stored ) {
@@ -178,7 +178,7 @@ class IntercomAPITest extends TestCase {
 
 		Intercom_API::log( 'error', '/new', 'newest entry' );
 
-		$log = $stored['iws_sync_log'];
+		$log = $stored['etherlabz_intercom_sync_log'];
 
 		// Should still be 100 entries, not 101.
 		$this->assertCount( 100, $log );
@@ -203,7 +203,7 @@ class IntercomAPITest extends TestCase {
 		// Should not throw — should reset the log and append the entry.
 		Intercom_API::log( 'success', '/me', 'HTTP 200' );
 
-		$this->assertCount( 1, $stored['iws_sync_log'] );
+		$this->assertCount( 1, $stored['etherlabz_intercom_sync_log'] );
 	}
 
 	// ------------------------------------------------------------------
@@ -352,7 +352,7 @@ class IntercomAPITest extends TestCase {
 
 		Functions\when( 'get_option' )->alias(
 			function ( string $key, $default = null ) use ( &$stored ) {
-				if ( 'iws_access_token' === $key ) {
+				if ( 'etherlabz_intercom_access_token' === $key ) {
 					return Encryption::encrypt( 'tok' );
 				}
 				return $stored[ $key ] ?? $default;
@@ -406,7 +406,7 @@ class IntercomAPITest extends TestCase {
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 
-		$log      = $stored['iws_sync_log'] ?? array();
+		$log      = $stored['etherlabz_intercom_sync_log'] ?? array();
 		$messages = array_column( $log, 'msg' );
 
 		// The named-email failure line is present.

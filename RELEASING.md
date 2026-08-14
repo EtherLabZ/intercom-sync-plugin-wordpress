@@ -28,7 +28,7 @@ Before starting a release, verify **all** of the following:
 [ ] composer test passes  (./vendor/bin/phpunit)
 [ ] composer lint passes  (./vendor/bin/phpcs)
 [ ] Version in intercom-woo-sync.php is correct and bumped from previous release
-[ ] INTERCOM_WOO_SYNC_VERSION constant matches the plugin header Version:
+[ ] ETHERLABZ_INTERCOM_VERSION constant matches the plugin header Version:
 [ ] No existing git tag with the same name
 [ ] GitHub Actions are enabled on the repo
 ```
@@ -68,12 +68,12 @@ Edit **`intercom-woo-sync.php`** — two places must match:
  * Version:           1.3.1
 
 // Version constant (line ~45)
-define( 'INTERCOM_WOO_SYNC_VERSION', '1.3.1' );
+define( 'ETHERLABZ_INTERCOM_VERSION', '1.3.1' );
 ```
 
 Verify they match:
 ```bash
-grep -E "Version:|INTERCOM_WOO_SYNC_VERSION" intercom-woo-sync.php
+grep -E "Version:|ETHERLABZ_INTERCOM_VERSION" intercom-woo-sync.php
 ```
 
 ---

@@ -40,7 +40,7 @@ final class Subscription_Events implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		if ( 'yes' !== get_option( 'iws_enable_subscriptions', 'no' ) ) {
+		if ( 'yes' !== get_option( 'etherlabz_intercom_enable_subscriptions', 'no' ) ) {
 			return;
 		}
 
@@ -150,14 +150,12 @@ final class Subscription_Events implements Registrable {
 			$extra
 		);
 
-		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix.
 		$metadata = (array) apply_filters(
-			'iws_subscription_event_metadata',
+			'etherlabz_intercom_subscription_event_metadata',
 			$metadata,
 			$subscription,
 			$event_name
 		);
-		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
 		$api->create_event( $email, $event_name, $metadata );
 	}

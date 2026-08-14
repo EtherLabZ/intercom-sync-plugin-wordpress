@@ -28,7 +28,7 @@ final class Messenger implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		if ( 'yes' !== get_option( 'iws_enable_messenger', 'no' ) ) {
+		if ( 'yes' !== get_option( 'etherlabz_intercom_enable_messenger', 'no' ) ) {
 			return;
 		}
 
@@ -111,8 +111,7 @@ window.intercomSettings = <?php echo $json; ?>;
 		 * @param array $settings The settings array passed to window.intercomSettings.
 		 * @param \WP_User|null $user    The current logged-in user, or null if anonymous.
 		 */
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix.
-		return (array) apply_filters( 'iws_messenger_settings', $settings, $user );
+		return (array) apply_filters( 'etherlabz_intercom_messenger_settings', $settings, $user );
 	}
 
 	/**
@@ -143,7 +142,7 @@ window.intercomSettings = <?php echo $json; ?>;
 	 * Get the configured Intercom App ID (workspace ID).
 	 */
 	public static function get_app_id(): string {
-		$value = (string) get_option( 'iws_app_id', '' );
+		$value = (string) get_option( 'etherlabz_intercom_app_id', '' );
 		return trim( $value );
 	}
 
@@ -151,7 +150,7 @@ window.intercomSettings = <?php echo $json; ?>;
 	 * Get the decrypted Identity Verification Secret, or empty string if not set.
 	 */
 	public static function get_secret(): string {
-		$raw = (string) get_option( 'iws_hmac_secret', '' );
+		$raw = (string) get_option( 'etherlabz_intercom_hmac_secret', '' );
 		return Encryption::decrypt( $raw );
 	}
 }

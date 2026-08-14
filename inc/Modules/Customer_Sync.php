@@ -26,7 +26,7 @@ final class Customer_Sync implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		if ( 'yes' !== get_option( 'iws_sync_customers', 'yes' ) ) {
+		if ( 'yes' !== get_option( 'etherlabz_intercom_sync_customers', 'yes' ) ) {
 			return;
 		}
 
@@ -90,7 +90,7 @@ final class Customer_Sync implements Registrable {
 			$payload['phone'] = $e164;
 		}
 
-		$data = apply_filters( 'iws_contact_payload', $payload, $customer ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix; renaming would break downstream integrations.
+		$data = apply_filters( 'etherlabz_intercom_contact_payload', $payload, $customer );
 
 		$result = $api->upsert_contact( $data );
 
@@ -104,8 +104,7 @@ final class Customer_Sync implements Registrable {
 			 * @param WC_Customer $customer    The WooCommerce customer.
 			 * @param array       $payload     The exact payload that was sent.
 			 */
-			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix.
-			do_action( 'iws_after_customer_sync', (string) $result['id'], $customer, $data );
+			do_action( 'etherlabz_intercom_after_customer_sync', (string) $result['id'], $customer, $data );
 		}
 	}
 

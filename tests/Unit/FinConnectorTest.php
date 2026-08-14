@@ -75,7 +75,7 @@ class FinConnectorTest extends TestCase {
 
 		$url = Fin_Connector::get_endpoint_url();
 
-		$this->assertStringContainsString( 'iws/v1/orders', $url );
+		$this->assertStringContainsString( 'etherlabz-intercom/v1/orders', $url );
 	}
 
 	// ------------------------------------------------------------------
@@ -101,6 +101,6 @@ class FinConnectorTest extends TestCase {
 	// ------------------------------------------------------------------
 
 	public function test_rest_namespace_is_correct(): void {
-		$this->assertSame( 'iws/v1', Fin_Connector::REST_NAMESPACE );
+		$this->assertSame( 'etherlabz-intercom/v1', Fin_Connector::REST_NAMESPACE );
 	}
 }

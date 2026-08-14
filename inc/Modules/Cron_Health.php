@@ -35,9 +35,9 @@ final class Cron_Health implements Registrable {
 	 * @var string[]
 	 */
 	private const TRACKED_CRONS = array(
-		'iws_bulk_sync_cron',
-		'iws_bulk_sync_batch',
-		'iws_cart_abandonment_cron',
+		'etherlabz_intercom_bulk_sync_cron',
+		'etherlabz_intercom_bulk_sync_batch',
+		'etherlabz_intercom_cart_abandonment_cron',
 	);
 
 	/**
@@ -57,7 +57,7 @@ final class Cron_Health implements Registrable {
 	 * Record the most recent run time for any plugin cron.
 	 */
 	public static function stamp_run(): void {
-		update_option( 'iws_last_cron_run', time(), false );
+		update_option( 'etherlabz_intercom_last_cron_run', time(), false );
 	}
 
 	/**
@@ -135,7 +135,7 @@ final class Cron_Health implements Registrable {
 		}
 
 		// 3. No cron run in the last hour even though we have plugin events scheduled.
-		$last_run    = (int) get_option( 'iws_last_cron_run', 0 );
+		$last_run    = (int) get_option( 'etherlabz_intercom_last_cron_run', 0 );
 		$has_events  = self::has_scheduled_plugin_events();
 		$cron_active = $last_run > 0;
 
@@ -153,7 +153,7 @@ final class Cron_Health implements Registrable {
 		}
 
 		// 4. Plugin scheduled events are entirely missing — activation may have failed.
-		if ( ! $has_events && '' !== (string) get_option( 'iws_access_token', '' ) ) {
+		if ( ! $has_events && '' !== (string) get_option( 'etherlabz_intercom_access_token', '' ) ) {
 			$issues[] = array(
 				'severity' => 'warning',
 				'code'     => 'no_scheduled_events',

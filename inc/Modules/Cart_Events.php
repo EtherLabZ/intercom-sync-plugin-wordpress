@@ -27,13 +27,13 @@ final class Cart_Events implements Registrable {
 	/**
 	 * Throttle key for product-viewed events (one event per product per user per hour).
 	 */
-	private const VIEW_THROTTLE_TRANSIENT = 'iws_pv_';
+	private const VIEW_THROTTLE_TRANSIENT = 'etherlabz_intercom_pv_';
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		if ( 'yes' !== get_option( 'iws_enable_cart_events', 'no' ) ) {
+		if ( 'yes' !== get_option( 'etherlabz_intercom_enable_cart_events', 'no' ) ) {
 			return;
 		}
 
@@ -196,13 +196,13 @@ final class Cart_Events implements Registrable {
 		}
 
 		$cart_hash = $this->cart_hash();
-		$last_hash = (string) WC()->session->get( 'iws_checkout_started_hash', '' );
+		$last_hash = (string) WC()->session->get( 'etherlabz_intercom_checkout_started_hash', '' );
 
 		if ( '' !== $cart_hash && $cart_hash === $last_hash ) {
 			return;
 		}
 
-		WC()->session->set( 'iws_checkout_started_hash', $cart_hash );
+		WC()->session->set( 'etherlabz_intercom_checkout_started_hash', $cart_hash );
 
 		$this->fire_event(
 			$email,
@@ -256,7 +256,7 @@ final class Cart_Events implements Registrable {
 			$pending = array_slice( $pending, 0, 500, true );
 		}
 
-		update_option( 'iws_pending_carts', $pending, false );
+		update_option( 'etherlabz_intercom_pending_carts', $pending, false );
 	}
 
 	/**
@@ -288,7 +288,7 @@ final class Cart_Events implements Registrable {
 
 		if ( isset( $pending[ $user_id ] ) ) {
 			unset( $pending[ $user_id ] );
-			update_option( 'iws_pending_carts', $pending, false );
+			update_option( 'etherlabz_intercom_pending_carts', $pending, false );
 		}
 	}
 
@@ -298,7 +298,7 @@ final class Cart_Events implements Registrable {
 	 * @return array<int, array<string, mixed>>
 	 */
 	public static function get_pending_carts(): array {
-		$pending = get_option( 'iws_pending_carts', array() );
+		$pending = get_option( 'etherlabz_intercom_pending_carts', array() );
 		return is_array( $pending ) ? $pending : array();
 	}
 
@@ -417,9 +417,7 @@ final class Cart_Events implements Registrable {
 			return;
 		}
 
-		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- iws_ is the documented public hook prefix.
-		$metadata = (array) apply_filters( 'iws_cart_event_metadata', $metadata, $event_name, $email );
-		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		$metadata = (array) apply_filters( 'etherlabz_intercom_cart_event_metadata', $metadata, $event_name, $email );
 
 		$api->create_event( $email, $event_name, $metadata );
 	}
