@@ -148,7 +148,7 @@ The workflow:
    Check that:
    - No `vendor/`, `tests/`, `.claude/`, `composer.json`, `Makefile`, `bin/` are present.
    - The inner folder is exactly `etherlabz-intercom-sync/`.
-   - `intercom-woo-sync.php`, `uninstall.php`, `inc/`, `assets/`, `templates/`, `languages/` are all present.
+   - `intercom-woo-sync.php`, `uninstall.php`, `inc/`, `assets/`, `templates/` are all present.
 
 4. For pre-releases: confirm **Pre-release** badge is shown.
 5. For stable releases: confirm **Latest release** badge is shown.
