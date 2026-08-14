@@ -323,7 +323,9 @@
       if (
         $("#iws-fin-key-value").length &&
         // eslint-disable-next-line no-alert
-        !window.confirm("This will invalidate the current key. Continue?")
+        !window.confirm(
+          i18n.regenKeyConfirm || "This will invalidate the current key. Continue?",
+        )
       ) {
         return;
       }
@@ -588,7 +590,10 @@
       var type = fieldType(cond.field);
       var $op = buildOperatorOptions(type, cond.operator);
       var $val = $('<input type="text" class="iws-condition__value" />').val(cond.value || "");
-      var $remove = $('<button type="button" class="iws-condition__remove" aria-label="Remove">×</button>');
+      var $remove = $('<button type="button" class="iws-condition__remove">×</button>').attr(
+        "aria-label",
+        i18n.removeCondition || "Remove",
+      );
 
       $field.on("change", function () {
         var newType = fieldType($(this).val());
@@ -655,7 +660,7 @@
         i18n.deleteRule || "Delete",
       );
       $delete.on("click", function () {
-        if (window.confirm("Delete this rule?")) {
+        if (window.confirm(i18n.deleteRuleConfirm || "Delete this rule?")) {
           $card.remove();
           refreshEmptyState();
         }

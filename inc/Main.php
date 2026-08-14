@@ -101,7 +101,7 @@ final class Main {
 		add_option( 'iws_access_token', '' );
 		add_option( 'iws_sync_customers', 'yes' );
 		add_option( 'iws_sync_orders', 'yes' );
-		add_option( 'iws_sync_log', array() );
+		add_option( 'iws_sync_log', array(), '', false );
 		add_option( 'iws_hmac_secret', '' );
 		add_option( 'iws_fin_api_key', '' );
 
@@ -136,6 +136,7 @@ final class Main {
 	 */
 	public static function deactivate(): void {
 		wp_clear_scheduled_hook( 'iws_bulk_sync_cron' );
+		wp_clear_scheduled_hook( 'iws_bulk_sync_batch' );
 		Modules\Cart_Abandonment::unschedule();
 	}
 }

@@ -215,7 +215,7 @@ if ( $iws_has_fin_key ) {
 			<?php endif; ?>
 
 			<div class="iws-actions iws-mt-12">
-				<button type="button" id="iws-generate-fin-key" class="button <?php echo $iws_has_fin_key ? 'button-secondary' : 'button-primary'; ?>">
+				<button type="button" id="iws-generate-fin-key" class="button <?php echo esc_attr( $iws_has_fin_key ? 'button-secondary' : 'button-primary' ); ?>">
 					<span class="dashicons dashicons-admin-network"></span>
 					<?php
 					echo $iws_has_fin_key

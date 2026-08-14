@@ -78,3 +78,25 @@ wp.org rejects plugin slugs/names that **begin** with another company's trademar
 Deliberately NOT renamed: the main file `intercom-woo-sync.php` (filename is irrelevant to i18n auto-loading since WP 4.6, and renaming risks plugin-basename churn) and `Admin_Screen::SCREEN_ID` / asset handle PREFIX / `toplevel_page_` hook check (internal admin-URL + handle identifiers, not a compliance concern — changing them would move the admin page URL for no benefit).
 
 License: added canonical GPLv2 as `license.txt` (curl'd from gnu.org) to match the existing `GPL-2.0-or-later` header. Chose GPLv2 over MIT to stay consistent with the header and WP norm. Version kept at 2.0.0.
+
+## 2026-08-14
+
+### 06:20 · Security · Encryption format v2: AES-256-GCM with random IV (enc2::)
+
+The old format (enc::) was AES-256-CBC with a static IV derived from AUTH_SALT — deterministic ciphertexts, no integrity check, and a hardcoded fallback key when AUTH_KEY was undefined. New format: AES-256-GCM, 12-byte random IV + 16-byte tag prepended to the ciphertext, `enc2::` prefix. Legacy `enc::` values stay decryptable (read-only path retains the old derivation, including the old fallback strings, verbatim) and migrate to v2 on the next settings save. When AUTH_KEY is missing we now refuse to encrypt (plaintext passthrough, same as the no-OpenSSL path) instead of pretending with a publicly known key. Chose GCM over CBC+HMAC: one primitive, authenticated by construction, universally available in OpenSSL.
+
+### 06:22 · Security · Secrets are write-only in the admin UI; blank submit keeps stored value
+
+The settings screen used to echo the decrypted access token and HMAC secret into `value=""` on every load. Fields now always render empty with a masked placeholder; sanitizers (`sanitize_access_token` / `sanitize_hmac_secret`) treat an empty submission as "keep what's stored" (re-encrypting it, which migrates legacy formats forward). Trade-off: you can't clear a secret from the UI, only replace it — accepted, since clearing is rare and the alternative (echoing secrets into page source) is a real leak vector.
+
+### 06:24 · API surface · Fin write endpoints require email ownership of the order
+
+`POST /orders/{id}/cancel` and `/refund` acted on any order ID with only the shared Bearer key — any chat user who got Fin to pass someone else's order ID could cancel/refund it. Both now resolve the caller's email (X-Intercom-Verified-Email preferred, X-Email fallback — same ladder as the read endpoints) and require it to match the order's billing email, returning 404 on mismatch so existence isn't leaked. This is a breaking change for Fin action configs that didn't forward an email header. /customer/note now also prefers the verified header.
+
+### 06:26 · Compatibility · Minimum PHP raised to 8.0 (was 7.4)
+
+Fin_Connector has used PHP 8.0 union return types (string|WP_Error etc.) and str_starts_with since 1.5 — the 7.4 header claim was already false and would fatal on 7.4. Rather than rewriting working signatures, the floor is now honest: `Requires PHP: 8.0` in header + readme. The one PHP 8.2-only construct (`true|WP_Error` standalone true type) was downgraded to `bool|WP_Error` so 8.0/8.1 hosts still work. Also bumped `Tested up to: 7.0` (current WP stable as of Aug 2026).
+
+### 06:40 · Design · Admin UI aligned to etherlabz.com (rust accent, dark CTA, pill tabs, system serif)
+
+Sampled the live site: paper #F9F5F3, ink #1D1E22/#080605, working accent rust #B8451A (the dominant text/interactive accent), bright orange #EF7240 and peach #FDC9A4 as highlights, 10px button radii, display serif + grotesk pairing. Admin changes: primary buttons now use the site's dark CTA (black → rust on hover), tabs became a segmented pill nav, cards got 1rem radii + soft warm shadows, headings use a system display-serif stack (Iowan Old Style/Palatino/Georgia) because wp.org forbids shipping/loading external webfonts, and interactive accents on light backgrounds switched from orange (#EF7240, ~2.8:1 on white — fails contrast) to rust (#B8451A, ~4.9:1). Orange/peach remain only on the dark header and gradient edge where contrast holds.

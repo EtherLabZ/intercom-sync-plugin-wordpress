@@ -2,8 +2,8 @@
 Contributors: etherlabz
 Tags: woocommerce, intercom, crm, abandoned cart, fin
 Requires at least: 6.0
-Tested up to: 6.7
-Requires PHP: 7.4
+Tested up to: 7.0
+Requires PHP: 8.0
 Stable tag: 2.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -49,7 +49,7 @@ Intercom privacy policy: https://www.intercom.com/legal/privacy
 
 == Installation ==
 
-1. Upload the plugin to `wp-content/plugins/intercom-woo-sync`, or install it from **Plugins → Add New → Upload Plugin**.
+1. Upload the plugin to `wp-content/plugins/etherlabz-intercom-sync`, or install it from **Plugins → Add New → Upload Plugin**.
 2. Activate **Etherlabz Intercom Sync for WooCommerce** (WooCommerce must be active).
 3. Open **Intercom Sync** in the admin sidebar.
 4. Paste your Intercom **Access Token** and click **Test Connection**.
@@ -84,6 +84,9 @@ Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-CBC k
 == Changelog ==
 
 = 2.0.0 =
+* Security: access tokens and secrets are now encrypted with AES-256-GCM using a random IV per value (previously AES-256-CBC with a static IV); existing stored values migrate automatically on next save.
+* Security: the settings screen no longer echoes stored tokens/secrets back into the page — fields render empty and leaving them blank keeps the stored value.
+* Security: Fin cancel/refund endpoints now verify the requesting customer's email against the order's billing email before acting.
 * Fix: contact upserts now recover from HTTP 409 conflicts (including archived contacts) by updating the existing contact in place instead of failing.
 * Fix: events for an unknown email now create the contact and replay the event instead of returning HTTP 404 "User Not Found".
 * Fix: phone numbers are normalised to E.164 using the billing country, eliminating most HTTP 422 "phone is invalid" errors.

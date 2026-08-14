@@ -17,9 +17,9 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       etherlabz-intercom-sync
  * Domain Path:       /languages
- * Requires PHP:      7.4
+ * Requires PHP:      8.0
  * Requires at least: 6.0
- * Tested up to:      6.7
+ * Tested up to:      7.0
  * Requires Plugins:  woocommerce
  */
 

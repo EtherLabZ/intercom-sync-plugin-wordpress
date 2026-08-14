@@ -97,9 +97,9 @@ final class Fin_Connector implements Registrable {
 	 *
 	 * @param WP_REST_Request $request Incoming request.
 	 *
-	 * @return true|WP_Error
+	 * @return bool|WP_Error True when authenticated, WP_Error otherwise.
 	 */
-	public function authenticate( WP_REST_Request $request ): true|WP_Error {
+	public function authenticate( WP_REST_Request $request ): bool|WP_Error {
 		$header = $request->get_header( 'Authorization' );
 
 		if ( ! $header || ! str_starts_with( $header, 'Bearer ' ) ) {
@@ -140,7 +140,7 @@ final class Fin_Connector implements Registrable {
 	 *
 	 * @return string|WP_Error Sanitized email or error.
 	 */
-	private function resolve_email( WP_REST_Request $request ): string|WP_Error {
+	public function resolve_email( WP_REST_Request $request ): string|WP_Error {
 		$verified = $request->get_header( 'X-Intercom-Verified-Email' );
 		if ( ! empty( $verified ) ) {
 			$email = sanitize_email( $verified );
@@ -327,7 +327,7 @@ final class Fin_Connector implements Registrable {
 	 *
 	 * @return bool
 	 */
-	private function email_matches_order( string $email, WC_Order $order ): bool {
+	public function email_matches_order( string $email, WC_Order $order ): bool {
 		return strtolower( $email ) === strtolower( $order->get_billing_email() );
 	}
 

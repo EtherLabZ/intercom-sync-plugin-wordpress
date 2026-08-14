@@ -9,12 +9,25 @@
    ---------------------------------------------------------------- */
 
 .iws-wrap {
-  /* Sunset palette (subset — only what the admin actually uses). */
+  /* Sunset palette (subset — only what the admin actually uses).
+     Mirrors etherlabz.com: rust is the site's working accent, black is
+     the CTA surface, orange/peach are highlights on dark ground. */
   --iws-brand-black: #080605;
   --iws-brand-brown: #581c03;
+  --iws-brand-rust: #b8451a;
+  --iws-brand-rust-deep: #9a3712;
   --iws-brand-orange: #ef7240;
   --iws-brand-peach: #fdc9a4;
+  --iws-brand-blush: #f7dad4;
   --iws-brand-cream: #f9f6f3;
+
+  /* Type — the site pairs a display serif with a neutral grotesk. The
+     admin can't ship webfonts (wp.org: no external assets), so these
+     stacks lean on high-quality system equivalents. */
+  --iws-font-display: "Iowan Old Style", "Palatino Linotype", Palatino,
+    Georgia, "Times New Roman", serif;
+  --iws-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Inter, "Helvetica Neue", sans-serif;
 
   /* Text + neutrals from the brand system. */
   --iws-text: #1d1e22;
@@ -58,11 +71,30 @@
    ---------------------------------------------------------------- */
 
 .iws-header {
+  position: relative;
+  overflow: hidden;
   background: var(--iws-header-gradient);
   color: #fff;
-  padding: 28px 32px;
-  border-radius: var(--iws-radius-lg);
+  padding: 30px 32px;
+  border-radius: var(--iws-radius-xl);
   margin-bottom: 24px;
+}
+
+/* Sunset edge — thin brand gradient along the header's bottom, echoing
+   the site's dark-hero-with-warm-glow look without shouting. */
+.iws-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--iws-brand-rust) 0%,
+    var(--iws-brand-orange) 45%,
+    var(--iws-brand-peach) 100%
+  );
 }
 
 .iws-header__title {
@@ -73,8 +105,10 @@
 
 .iws-header__title h1 {
   color: #fff;
-  font-size: 22px;
-  font-weight: 600;
+  font-family: var(--iws-font-display);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   margin: 0;
   padding: 0;
 }
@@ -121,30 +155,33 @@
    Tabs
    ---------------------------------------------------------------- */
 
+/* Segmented pill nav — mirrors the site's rounded nav container. */
 .iws-tabs {
-  display: flex;
+  display: inline-flex;
   gap: 4px;
   margin-bottom: 0;
-  border-bottom: 2px solid var(--iws-border);
-  padding-bottom: 0;
+  padding: 4px;
+  background: var(--iws-surface-muted);
+  border: 1px solid var(--iws-border);
+  border-radius: var(--iws-radius-full);
 }
 
 .iws-tabs__tab {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 18px;
+  padding: 8px 16px;
   border: none;
   background: transparent;
   color: var(--iws-text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  border-radius: var(--iws-radius-full);
   transition:
     color 0.15s,
-    border-color 0.15s;
+    background 0.15s,
+    box-shadow 0.15s;
 }
 
 .iws-tabs__tab:hover {
@@ -152,8 +189,9 @@
 }
 
 .iws-tabs__tab--active {
-  color: var(--iws-brand-orange);
-  border-bottom-color: var(--iws-brand-orange);
+  color: var(--iws-brand-rust);
+  background: var(--iws-surface);
+  box-shadow: 0 1px 2px rgba(8, 6, 5, 0.08);
 }
 
 .iws-tabs__tab .dashicons {
@@ -186,8 +224,11 @@
 .iws-card {
   background: var(--iws-surface);
   border: 1px solid var(--iws-border);
-  border-radius: var(--iws-radius-lg);
+  border-radius: var(--iws-radius-xl);
   padding: 24px 28px;
+  box-shadow:
+    0 1px 2px rgba(8, 6, 5, 0.04),
+    0 8px 24px rgba(8, 6, 5, 0.05);
 }
 
 .iws-card__header {
@@ -199,7 +240,10 @@
 
 .iws-card__header h2 {
   margin: 0;
-  font-size: 16px;
+  font-family: var(--iws-font-display);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   color: var(--iws-text);
 }
 
@@ -228,8 +272,8 @@
 .iws-tab-panel form .form-table input[type="text"]:focus,
 .iws-tab-panel form .form-table input[type="password"]:focus,
 .iws-tab-panel form .form-table input[type="number"]:focus {
-  border-color: var(--iws-brand-orange);
-  box-shadow: 0 0 0 1px var(--iws-brand-orange);
+  border-color: var(--iws-brand-rust);
+  box-shadow: 0 0 0 1px var(--iws-brand-rust);
   outline: 2px solid transparent;
 }
 
@@ -274,7 +318,11 @@
 }
 
 .iws-toggle input:checked + .iws-toggle__slider {
-  background: var(--iws-brand-orange);
+  background: var(--iws-brand-rust);
+}
+
+.iws-toggle input:focus-visible + .iws-toggle__slider {
+  box-shadow: 0 0 0 2px var(--iws-brand-peach);
 }
 
 .iws-toggle input:checked + .iws-toggle__slider::before {
@@ -314,11 +362,30 @@
   margin-right: 0;
 }
 
-/* Brand-tinted primary button (overrides core .button-primary inside our screen). */
+/* Rounded, site-style buttons: primary is the dark CTA from etherlabz.com,
+   warming to rust on hover; secondary picks up the warm border. */
+.iws-wrap .button {
+  border-radius: 10px;
+}
+
+.iws-wrap .button.button-secondary,
+.iws-wrap .button:not(.button-primary) {
+  border-color: var(--iws-border-strong);
+  color: var(--iws-text-secondary);
+  background: var(--iws-surface);
+}
+
+.iws-wrap .button.button-secondary:hover,
+.iws-wrap .button:not(.button-primary):hover {
+  border-color: var(--iws-brand-rust);
+  color: var(--iws-brand-rust);
+  background: var(--iws-surface);
+}
+
 .iws-tab-panel .button-primary,
 .iws-actions .button-primary {
-  background: var(--iws-brand-orange);
-  border-color: var(--iws-brand-orange);
+  background: var(--iws-brand-black);
+  border-color: var(--iws-brand-black);
   color: #fff;
   text-shadow: none;
   box-shadow: none;
@@ -328,8 +395,8 @@
 .iws-tab-panel .button-primary:focus,
 .iws-actions .button-primary:hover,
 .iws-actions .button-primary:focus {
-  background: var(--iws-brand-brown);
-  border-color: var(--iws-brand-brown);
+  background: var(--iws-brand-rust);
+  border-color: var(--iws-brand-rust);
   color: #fff;
 }
 
@@ -691,7 +758,7 @@
 
 .iws-footer__brand:hover,
 .iws-footer__brand:focus {
-  color: var(--iws-brand-orange);
+  color: var(--iws-brand-rust);
   text-decoration: underline;
 }
 
@@ -709,7 +776,7 @@
 
 .iws-footer__link:hover,
 .iws-footer__link:focus {
-  color: var(--iws-brand-orange);
+  color: var(--iws-brand-rust);
 }
 
 .iws-footer__link .dashicons {
@@ -908,8 +975,8 @@
 }
 
 .iws-rule__add-cond:hover {
-  border-color: var(--iws-brand-orange);
-  color: var(--iws-brand-orange);
+  border-color: var(--iws-brand-rust);
+  color: var(--iws-brand-rust);
 }
 
 /* ----------------------------------------------------------------------
@@ -928,7 +995,7 @@
 
 .iws-fin-actions .iws-card__header h2::before {
   content: "⚠";
-  color: var(--iws-brand-orange);
+  color: var(--iws-brand-rust);
   /* The unicode warning glyph has different vertical metrics than the
      surrounding text on different OSes (especially Windows + Linux), so we
      pin a fixed line-height and use inline-flex on the parent h2 to center

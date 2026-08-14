@@ -61,6 +61,20 @@ function uninstall(): void {
 		OPTION_PREFIX . 'bulk_sync_running',
 		OPTION_PREFIX . 'hmac_secret',
 		OPTION_PREFIX . 'fin_api_key',
+		OPTION_PREFIX . 'app_id',
+		OPTION_PREFIX . 'enable_messenger',
+		OPTION_PREFIX . 'enable_cart_events',
+		OPTION_PREFIX . 'enable_cart_abandonment',
+		OPTION_PREFIX . 'cart_abandon_minutes',
+		OPTION_PREFIX . 'enable_subscriptions',
+		OPTION_PREFIX . 'enable_purchase_tags',
+		OPTION_PREFIX . 'sync_guest_checkout',
+		OPTION_PREFIX . 'pending_carts',
+		OPTION_PREFIX . 'segment_rules',
+		OPTION_PREFIX . 'fin_action_cancel_enabled',
+		OPTION_PREFIX . 'fin_action_refund_enabled',
+		OPTION_PREFIX . 'fin_action_note_enabled',
+		OPTION_PREFIX . 'last_cron_run',
 	);
 
 	foreach ( $options as $option ) {
@@ -70,6 +84,7 @@ function uninstall(): void {
 	// Clear any scheduled cron events.
 	wp_clear_scheduled_hook( 'iws_bulk_sync_cron' );
 	wp_clear_scheduled_hook( 'iws_bulk_sync_batch' );
+	wp_clear_scheduled_hook( 'iws_cart_abandonment_cron' );
 }
 
 run_uninstaller();
