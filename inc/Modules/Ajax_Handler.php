@@ -44,6 +44,14 @@ final class Ajax_Handler implements Registrable {
 	public function test_connection(): void {
 		$this->verify_request();
 
+		if ( Encryption::is_undecryptable( (string) get_option( 'etherlabz_intercom_access_token', '' ) ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Your stored token can no longer be decrypted — your site\'s security keys (AUTH_KEY) changed since it was saved. Re-enter the token and save.', 'etherlabz-intercom-sync' ),
+				)
+			);
+		}
+
 		$api    = new Intercom_API();
 		$result = $api->test_connection();
 

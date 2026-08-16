@@ -322,6 +322,17 @@ final class Settings implements Registrable {
 		$raw    = (string) get_option( 'etherlabz_intercom_access_token', '' );
 		$stored = '' !== Encryption::decrypt( $raw );
 
+		if ( Encryption::is_undecryptable( $raw ) ) {
+			printf(
+				'<input type="password" id="etherlabz_intercom_access_token" name="etherlabz_intercom_access_token" value="" class="regular-text" autocomplete="off" placeholder="%s" />',
+				esc_attr__( 'Stored token can’t be decrypted — paste it again', 'etherlabz-intercom-sync' )
+			);
+			echo '<p class="description"><span class="dashicons dashicons-warning iws-lock-icon"></span> ';
+			echo esc_html__( 'Your site’s security keys changed since this token was saved, so it can no longer be decrypted. Re-enter it to resume syncing.', 'etherlabz-intercom-sync' );
+			echo '</p>';
+			return;
+		}
+
 		// The decrypted token is never echoed back into the page. When one is
 		// stored, the field renders empty with a masked placeholder; leaving it
 		// blank on save keeps the stored value.
@@ -372,6 +383,17 @@ final class Settings implements Registrable {
 	public function render_hmac_field(): void {
 		$raw    = (string) get_option( 'etherlabz_intercom_hmac_secret', '' );
 		$stored = '' !== Encryption::decrypt( $raw );
+
+		if ( Encryption::is_undecryptable( $raw ) ) {
+			printf(
+				'<input type="password" id="etherlabz_intercom_hmac_secret" name="etherlabz_intercom_hmac_secret" value="" class="regular-text" autocomplete="off" placeholder="%s" />',
+				esc_attr__( 'Stored secret can’t be decrypted — paste it again', 'etherlabz-intercom-sync' )
+			);
+			echo '<p class="description"><span class="dashicons dashicons-warning iws-lock-icon"></span> ';
+			echo esc_html__( 'Your site’s security keys changed since this secret was saved, so it can no longer be decrypted. Re-enter it to keep identity verification working.', 'etherlabz-intercom-sync' );
+			echo '</p>';
+			return;
+		}
 
 		$placeholder = $stored
 			? __( '•••••••• (a secret is stored — leave blank to keep it)', 'etherlabz-intercom-sync' )

@@ -126,6 +126,20 @@ final class Encryption {
 	}
 
 	/**
+	 * Whether a stored value is an encrypted blob that can no longer be
+	 * decrypted — the classic symptom of AUTH_KEY having changed since the
+	 * value was saved (host migration, salt rotation, WordPress Playground
+	 * regenerating keys per boot).
+	 *
+	 * @param string $value The stored value.
+	 */
+	public static function is_undecryptable( string $value ): bool {
+		return '' !== $value
+			&& self::is_encrypted( $value )
+			&& '' === self::decrypt( $value );
+	}
+
+	/**
 	 * Decrypt a value in the current enc2:: (AES-256-GCM) format.
 	 *
 	 * @param string $value The prefixed, base64-encoded value.

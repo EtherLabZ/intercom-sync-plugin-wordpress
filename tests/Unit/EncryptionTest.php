@@ -131,4 +131,36 @@ class EncryptionTest extends TestCase {
 	public function test_is_encrypted_returns_false_for_plain_value(): void {
 		$this->assertFalse( Encryption::is_encrypted( 'not-encrypted' ) );
 	}
+
+	// ------------------------------------------------------------------
+	// is_undecryptable()
+	// ------------------------------------------------------------------
+
+	public function test_is_undecryptable_false_for_empty_and_plaintext(): void {
+		$this->assertFalse( Encryption::is_undecryptable( '' ) );
+		$this->assertFalse( Encryption::is_undecryptable( 'plain-token' ) );
+	}
+
+	public function test_is_undecryptable_false_for_healthy_ciphertext(): void {
+		$this->assertFalse( Encryption::is_undecryptable( Encryption::encrypt( 'ok' ) ) );
+	}
+
+	public function test_is_undecryptable_true_for_wrong_key_ciphertext(): void {
+		// Simulate a blob written under a different AUTH_KEY: valid enc2::
+		// framing (12-byte IV + 16-byte tag + ciphertext) that this site's
+		// key cannot authenticate.
+		$foreign_key = hash( 'sha256', 'some-other-sites-auth-key', true );
+		$iv          = random_bytes( 12 );
+		$tag         = '';
+		$cipher      = openssl_encrypt( 'secret', 'aes-256-gcm', $foreign_key, OPENSSL_RAW_DATA, $iv, $tag );
+
+		$blob = 'enc2::' . base64_encode( $iv . $tag . $cipher );
+
+		$this->assertTrue( Encryption::is_undecryptable( $blob ) );
+	}
+
+	public function test_is_undecryptable_true_for_corrupt_blob(): void {
+		$this->assertTrue( Encryption::is_undecryptable( 'enc2::not-valid-base64!!!' ) );
+		$this->assertTrue( Encryption::is_undecryptable( 'enc::not-valid-base64!!!' ) );
+	}
 }
