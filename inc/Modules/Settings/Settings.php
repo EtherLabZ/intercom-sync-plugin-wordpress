@@ -367,7 +367,7 @@ final class Settings implements Registrable {
 			printf(
 				'<span class="%1$s"><span class="dashicons %2$s"></span><code>%3$s</code>%4$s</span>
 				<span class="iws-secret__actions">
-					<button type="button" class="button iws-secret__change iws-icon-btn" aria-label="%5$s" title="%5$s"><span class="dashicons dashicons-edit"></span></button>
+					<button type="button" class="button iws-secret__change"><span class="dashicons dashicons-edit"></span>%5$s</button>
 					<button type="button" class="button iws-secret__remove iws-icon-btn iws-icon-btn--danger" aria-label="%6$s" title="%6$s"><span class="dashicons dashicons-trash"></span></button>
 				</span>
 				<span class="iws-secret__pending iws-hidden">%7$s <button type="button" class="button-link iws-secret__undo">%8$s</button></span>',
@@ -375,7 +375,7 @@ final class Settings implements Registrable {
 				esc_attr( $icon ),
 				esc_html( $mask ),
 				$badge, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above from escaped parts.
-				esc_attr( $change_label ),
+				esc_html( $change_label ),
 				esc_attr( $remove_label ),
 				esc_html__( 'Removes when you save changes.', 'etherlabz-intercom-sync' ),
 				esc_html__( 'Undo', 'etherlabz-intercom-sync' )
@@ -395,7 +395,7 @@ final class Settings implements Registrable {
 			esc_attr( $add_placeholder ),
 			( $stored || $broken ) ? ' disabled' : '',
 			( $stored || $broken )
-				? '<button type="button" class="button-link iws-secret__cancel">' . esc_html__( 'Cancel', 'etherlabz-intercom-sync' ) . '</button>'
+				? '<button type="button" class="button iws-secret__cancel"><span class="dashicons dashicons-no-alt"></span>' . esc_html__( 'Cancel', 'etherlabz-intercom-sync' ) . '</button>'
 				: ''
 		);
 

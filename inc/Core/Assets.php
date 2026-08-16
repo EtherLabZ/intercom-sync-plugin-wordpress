@@ -51,14 +51,14 @@ final class Assets implements Registrable {
 			self::ADMIN_CSS,
 			ETHERLABZ_INTERCOM_URL . 'assets/css/admin.css',
 			array(),
-			ETHERLABZ_INTERCOM_VERSION
+			self::asset_version( 'assets/css/admin.css' )
 		);
 
 		wp_enqueue_script(
 			self::ADMIN_JS,
 			ETHERLABZ_INTERCOM_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
-			ETHERLABZ_INTERCOM_VERSION,
+			self::asset_version( 'assets/js/admin.js' ),
 			true
 		);
 
@@ -109,6 +109,17 @@ final class Assets implements Registrable {
 				),
 			)
 		);
+	}
+
+	/**
+	 * Cache-busting version for an asset: its modification time, so browsers
+	 * refetch whenever the file actually changes — not only on version bumps.
+	 *
+	 * @param string $relative_path Path relative to the plugin root.
+	 */
+	private static function asset_version( string $relative_path ): string {
+		$mtime = filemtime( ETHERLABZ_INTERCOM_PATH . $relative_path );
+		return false !== $mtime ? (string) $mtime : ETHERLABZ_INTERCOM_VERSION;
 	}
 
 	/**
