@@ -1,7 +1,7 @@
 # Release Process
 
 This document defines the **authoritative, step-by-step release process** for
-**Etherlabz Intercom Sync for WooCommerce**. It is written for human developers **and** AI agents.
+**Etherlabz Intercom Sync**. It is written for human developers **and** AI agents.
 Follow every step in order; do not skip or reorder.
 
 ---

@@ -1,6 +1,6 @@
 <div align="center">
 
-# Etherlabz Intercom Sync for WooCommerce
+# Etherlabz Intercom Sync
 
 **The complete Intercom integration for WooCommerce.**
 Customers, orders, cart funnel, abandoned carts, subscriptions, purchase tags — and a HMAC-secured Messenger embed. All in one plugin, all open source.
@@ -74,7 +74,7 @@ No Composer, no npm, no build step at runtime. Composer is only used for the dev
 
 1. Download the latest ZIP from the [Releases page](https://github.com/EtherLabZ/intercom-sync-plugin-wordpress/releases).
 2. WP Admin → **Plugins → Add New → Upload Plugin** → pick the ZIP.
-3. Activate **Etherlabz Intercom Sync for WooCommerce**.
+3. Activate **Etherlabz Intercom Sync**.
 4. Open **Intercom Sync** in the admin sidebar.
 5. Paste your Intercom **Access Token** and click **Test Connection**.
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * PHPUnit bootstrap for Etherlabz Intercom Sync for WooCommerce unit tests.
+ * PHPUnit bootstrap for Etherlabz Intercom Sync unit tests.
  *
  * Sets up the minimum constants the plugin needs and registers the
  * PSR-4 autoloader so test classes can require plugin classes directly.
