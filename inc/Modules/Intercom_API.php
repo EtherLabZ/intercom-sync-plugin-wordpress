@@ -22,9 +22,21 @@ defined( 'ABSPATH' ) || exit;
 final class Intercom_API {
 
 	/**
-	 * Intercom API base URL.
+	 * Intercom REST API base URLs per hosting region.
 	 */
-	private const BASE_URL = 'https://api.intercom.io';
+	private const BASE_URLS = array(
+		'us' => 'https://api.intercom.io',
+		'eu' => 'https://api.eu.intercom.io',
+		'au' => 'https://api.au.intercom.io',
+	);
+
+	/**
+	 * REST API base for the configured workspace region.
+	 */
+	public static function get_base_url(): string {
+		$region = (string) get_option( 'etherlabz_intercom_region', 'us' );
+		return self::BASE_URLS[ $region ] ?? self::BASE_URLS['us'];
+	}
 
 	/**
 	 * The bearer access token.
@@ -75,7 +87,7 @@ final class Intercom_API {
 			$args['body'] = wp_json_encode( $body );
 		}
 
-		$response = wp_remote_request( self::BASE_URL . $endpoint, $args );
+		$response = wp_remote_request( self::get_base_url() . $endpoint, $args );
 
 		if ( is_wp_error( $response ) ) {
 			self::log( 'error', $endpoint, $response->get_error_message() );

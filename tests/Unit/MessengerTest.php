@@ -35,6 +35,25 @@ class MessengerTest extends TestCase {
 	}
 
 	// ------------------------------------------------------------------
+	// get_api_base()
+	// ------------------------------------------------------------------
+
+	public function test_api_base_defaults_to_us(): void {
+		Functions\when( 'get_option' )->justReturn( 'us' );
+		$this->assertSame( 'https://api-iam.intercom.io', Messenger::get_api_base() );
+	}
+
+	public function test_api_base_maps_eu_and_au_regions(): void {
+		Functions\when( 'get_option' )->justReturn( 'eu' );
+		$this->assertSame( 'https://api-iam.eu.intercom.io', Messenger::get_api_base() );
+	}
+
+	public function test_api_base_falls_back_to_us_for_unknown_region(): void {
+		Functions\when( 'get_option' )->justReturn( 'garbage' );
+		$this->assertSame( 'https://api-iam.intercom.io', Messenger::get_api_base() );
+	}
+
+	// ------------------------------------------------------------------
 	// generate_user_hash()
 	// ------------------------------------------------------------------
 

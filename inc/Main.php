@@ -173,6 +173,7 @@ final class Main {
 
 		// New feature toggles (default off so upgrades are non-disruptive).
 		add_option( 'etherlabz_intercom_app_id', '' );
+		add_option( 'etherlabz_intercom_region', 'us' );
 		add_option( 'etherlabz_intercom_enable_messenger', 'no' );
 		add_option( 'etherlabz_intercom_enable_cart_events', 'no' );
 		add_option( 'etherlabz_intercom_enable_cart_abandonment', 'no' );

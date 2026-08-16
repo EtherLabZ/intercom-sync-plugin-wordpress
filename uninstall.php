@@ -62,6 +62,7 @@ function uninstall(): void {
 		OPTION_PREFIX . 'hmac_secret',
 		OPTION_PREFIX . 'fin_api_key',
 		OPTION_PREFIX . 'app_id',
+		OPTION_PREFIX . 'region',
 		OPTION_PREFIX . 'enable_messenger',
 		OPTION_PREFIX . 'enable_cart_events',
 		OPTION_PREFIX . 'enable_cart_abandonment',
