@@ -286,16 +286,91 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+  /* Everything in the row — chip, buttons, links — locks to one height
+     so nothing sits a few pixels off baseline. */
+  --iws-secret-row-h: 32px;
+  min-height: var(--iws-secret-row-h);
 }
 
 .iws-secret__chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  box-sizing: border-box;
+  height: var(--iws-secret-row-h);
+  padding: 0 14px;
   background: var(--iws-surface-muted);
   border: 1px solid var(--iws-border);
   border-radius: var(--iws-radius-full);
+}
+
+.iws-secret__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Square icon-only buttons sized to the secret row. */
+.iws-icon-btn {
+  width: var(--iws-secret-row-h);
+  padding: 0;
+  justify-content: center;
+}
+
+.iws-icon-btn .dashicons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+  margin: 0;
+}
+
+.iws-icon-btn--danger:hover,
+.iws-icon-btn--danger:focus {
+  border-color: #dc2626 !important;
+  color: #dc2626 !important;
+}
+
+.iws-secret .button {
+  box-sizing: border-box;
+  height: var(--iws-secret-row-h);
+  /* WooCommerce's admin CSS sets a 40px min-height on .button, which beats
+     a plain height — pin min-height too so the row stays level. */
+  min-height: var(--iws-secret-row-h);
+  line-height: 1;
+  margin: 0;
+}
+
+.iws-secret .button-link,
+.iws-secret .button-link-delete {
+  height: var(--iws-secret-row-h);
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+/* WP core grows .button to 40px below 783px; keep the whole row in step. */
+@media screen and (max-width: 782px) {
+  .iws-secret {
+    --iws-secret-row-h: 40px;
+  }
+}
+
+.iws-secret__chip--pending {
+  opacity: 0.55;
+}
+
+.iws-secret__chip--pending code {
+  text-decoration: line-through;
+}
+
+.iws-secret__pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--iws-secret-row-h);
+  font-size: 12px;
+  color: var(--iws-text-muted);
 }
 
 .iws-secret__chip .dashicons {

@@ -89,6 +89,7 @@ final class Assets implements Registrable {
 					'keyCopied'         => __( 'API key copied to clipboard.', 'etherlabz-intercom-sync' ),
 					'keyGenerated'      => __( 'API key generated successfully.', 'etherlabz-intercom-sync' ),
 					'regenKeyConfirm'   => __( 'This will invalidate the current key. Continue?', 'etherlabz-intercom-sync' ),
+					'removeSecretConfirm' => __( 'Remove this saved value? Related features stop working until a new one is saved.', 'etherlabz-intercom-sync' ),
 					'live'              => __( 'Live', 'etherlabz-intercom-sync' ),
 					'paused'            => __( 'Paused', 'etherlabz-intercom-sync' ),
 					'ruleName'          => __( 'Rule name', 'etherlabz-intercom-sync' ),

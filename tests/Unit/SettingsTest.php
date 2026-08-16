@@ -43,9 +43,16 @@ class SettingsTest extends TestCase {
 				return $opts[ $key ] ?? $default;
 			}
 		);
+		Functions\when( 'wp_unslash' )->returnArg();
+		Functions\when( 'sanitize_key' )->alias(
+			static fn( $s ) => preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $s ) )
+		);
+
+		$_POST = array();
 	}
 
 	protected function tearDown(): void {
+		$_POST = array();
 		Monkey\tearDown();
 		parent::tearDown();
 	}
@@ -120,6 +127,30 @@ class SettingsTest extends TestCase {
 		// Should be returned as-is, not double-encrypted.
 		$this->assertSame( $encrypted, $result );
 		$this->assertSame( $token, Encryption::decrypt( $result ) );
+	}
+
+	public function test_remove_flag_clears_the_stored_token(): void {
+		$this->options['etherlabz_intercom_access_token'] = Encryption::encrypt( 'stored-token' );
+
+		$_POST['etherlabz_intercom_access_token_remove'] = '1';
+
+		$this->assertSame( '', Settings::sanitize_access_token( '' ) );
+	}
+
+	public function test_remove_flag_wins_over_a_typed_value(): void {
+		$_POST['etherlabz_intercom_access_token_remove'] = '1';
+
+		$this->assertSame( '', Settings::sanitize_access_token( 'freshly-typed-token' ) );
+	}
+
+	public function test_unset_remove_flag_keeps_the_stored_token(): void {
+		$this->options['etherlabz_intercom_access_token'] = Encryption::encrypt( 'stored-token' );
+
+		$_POST['etherlabz_intercom_access_token_remove'] = '';
+
+		$result = Settings::sanitize_access_token( '' );
+
+		$this->assertSame( 'stored-token', Encryption::decrypt( $result ) );
 	}
 
 	public function test_hmac_secret_reads_its_own_option_when_blank(): void {

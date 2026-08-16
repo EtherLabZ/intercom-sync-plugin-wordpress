@@ -359,16 +359,32 @@ final class Settings implements Registrable {
 				? '<span class="iws-badge iws-badge--error">' . esc_html__( 'Needs re-entry', 'etherlabz-intercom-sync' ) . '</span>'
 				: '<span class="iws-badge iws-badge--success">' . esc_html__( 'Saved', 'etherlabz-intercom-sync' ) . '</span>';
 
+			$change_label = $broken
+				? __( 'Re-enter', 'etherlabz-intercom-sync' )
+				: __( 'Change', 'etherlabz-intercom-sync' );
+			$remove_label = __( 'Remove', 'etherlabz-intercom-sync' );
+
 			printf(
 				'<span class="%1$s"><span class="dashicons %2$s"></span><code>%3$s</code>%4$s</span>
-				<button type="button" class="button iws-secret__change">%5$s</button>',
+				<span class="iws-secret__actions">
+					<button type="button" class="button iws-secret__change iws-icon-btn" aria-label="%5$s" title="%5$s"><span class="dashicons dashicons-edit"></span></button>
+					<button type="button" class="button iws-secret__remove iws-icon-btn iws-icon-btn--danger" aria-label="%6$s" title="%6$s"><span class="dashicons dashicons-trash"></span></button>
+				</span>
+				<span class="iws-secret__pending iws-hidden">%7$s <button type="button" class="button-link iws-secret__undo">%8$s</button></span>',
 				esc_attr( $chip_class ),
 				esc_attr( $icon ),
 				esc_html( $mask ),
 				$badge, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above from escaped parts.
-				$broken
-					? esc_html__( 'Re-enter', 'etherlabz-intercom-sync' )
-					: esc_html__( 'Change', 'etherlabz-intercom-sync' )
+				esc_attr( $change_label ),
+				esc_attr( $remove_label ),
+				esc_html__( 'Removes when you save changes.', 'etherlabz-intercom-sync' ),
+				esc_html__( 'Undo', 'etherlabz-intercom-sync' )
+			);
+
+			// Companion flag read by sanitize_secret(); set to 1 by the Remove button.
+			printf(
+				'<input type="hidden" name="%s_remove" value="" class="iws-secret__remove-flag" />',
+				esc_attr( $option )
 			);
 		}
 
@@ -401,7 +417,7 @@ final class Settings implements Registrable {
 			'<label class="iws-toggle"><input type="checkbox" name="etherlabz_intercom_sync_customers" value="yes" %s /><span class="iws-toggle__slider"></span></label>',
 			checked( $value, 'yes', false )
 		);
-		echo '<span class="description">' . esc_html__( 'Sync new and updated customers automatically.', 'etherlabz-intercom-sync' ) . '</span>';
+		echo '<span class="description">' . esc_html__( 'Keep Intercom contacts up to date as customers register, update their profile, or place orders.', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
@@ -413,7 +429,7 @@ final class Settings implements Registrable {
 			'<label class="iws-toggle"><input type="checkbox" name="etherlabz_intercom_sync_orders" value="yes" %s /><span class="iws-toggle__slider"></span></label>',
 			checked( $value, 'yes', false )
 		);
-		echo '<span class="description">' . esc_html__( 'Send an event on every order status change.', 'etherlabz-intercom-sync' ) . '</span>';
+		echo '<span class="description">' . esc_html__( 'Send placed, completed, refunded and other order-status events, with line-item details.', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
@@ -423,7 +439,7 @@ final class Settings implements Registrable {
 		$this->render_secret_field(
 			'etherlabz_intercom_hmac_secret',
 			__( 'Paste your identity verification secret', 'etherlabz-intercom-sync' ),
-			__( 'Intercom → Settings → Identity Verification', 'etherlabz-intercom-sync' )
+			__( 'Enables Messenger identity verification. Intercom → Settings → Identity Verification.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -438,7 +454,7 @@ final class Settings implements Registrable {
 			esc_attr__( 'e.g. abc12def', 'etherlabz-intercom-sync' )
 		);
 		echo '<p class="description">';
-		echo esc_html__( 'Workspace ID — required for the Messenger. Intercom → Settings → Workspace.', 'etherlabz-intercom-sync' );
+		echo esc_html__( 'Your workspace ID — needed to embed the Messenger. Intercom → Settings → Workspace.', 'etherlabz-intercom-sync' );
 		echo '</p>';
 	}
 
@@ -449,7 +465,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_messenger',
 			'no',
-			__( 'Show the Intercom chat widget on your store.', 'etherlabz-intercom-sync' )
+			__( 'Show the Intercom chat widget to store visitors — identity-verified when a secret is set above.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -460,7 +476,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_cart_events',
 			'no',
-			__( 'Track product views, add-to-carts, coupons, and checkout starts.', 'etherlabz-intercom-sync' )
+			__( 'Send product-viewed, cart-added, coupon-applied and checkout-started events.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -471,7 +487,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_cart_abandonment',
 			'no',
-			__( 'Flag carts left idle past the threshold below.', 'etherlabz-intercom-sync' )
+			__( 'Fire a cart-abandoned event when a customer leaves items in their cart past the threshold below.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -484,7 +500,7 @@ final class Settings implements Registrable {
 			'<input type="number" id="etherlabz_intercom_cart_abandon_minutes" name="etherlabz_intercom_cart_abandon_minutes" value="%s" min="5" max="10080" step="5" class="small-text" />',
 			esc_attr( (string) $value )
 		);
-		echo '<span class="description"> ' . esc_html__( '5 min – 1 week.', 'etherlabz-intercom-sync' ) . '</span>';
+		echo '<span class="description"> ' . esc_html__( 'Minutes of cart inactivity before it counts as abandoned (5–10080).', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
@@ -494,7 +510,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_subscriptions',
 			'no',
-			__( 'Subscription lifecycle events. Needs WooCommerce Subscriptions.', 'etherlabz-intercom-sync' )
+			__( 'Send activated, renewed, cancelled and payment-failed events. Requires WooCommerce Subscriptions.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -505,7 +521,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_purchase_tags',
 			'no',
-			__( 'Tag customers by what they buy; tags come off on refund.', 'etherlabz-intercom-sync' )
+			__( 'Apply purchased-{product} and purchased-category-{category} tags on completed orders; removed on refund.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -516,7 +532,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_sync_guest_checkout',
 			'yes',
-			__( 'Include guest checkouts (matched by billing email).', 'etherlabz-intercom-sync' )
+			__( 'Also create contacts for guest checkouts, matched by billing email.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -607,6 +623,15 @@ final class Settings implements Registrable {
 	 * @param string $option Option name holding the currently stored value.
 	 */
 	private static function sanitize_secret( $value, string $option ): string {
+		// Explicit removal via the field's Remove button. The Settings API
+		// (options.php) has already nonce-verified this request before any
+		// sanitize callback runs.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$remove = isset( $_POST[ $option . '_remove' ] ) ? sanitize_key( wp_unslash( $_POST[ $option . '_remove' ] ) ) : '';
+		if ( '1' === $remove ) {
+			return '';
+		}
+
 		$value = is_string( $value ) ? trim( $value ) : '';
 
 		if ( '' === $value ) {

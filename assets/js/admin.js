@@ -781,7 +781,7 @@
 
     $(document).on("click", ".iws-secret__change", function () {
       var $wrap = $(this).closest(".iws-secret");
-      $wrap.find(".iws-secret__chip, .iws-secret__change").addClass("iws-hidden");
+      $wrap.find(".iws-secret__chip, .iws-secret__actions").addClass("iws-hidden");
       $wrap
         .find(".iws-secret__editor")
         .removeClass("iws-hidden")
@@ -798,7 +798,32 @@
         .find("input")
         .val("")
         .prop("disabled", true);
-      $wrap.find(".iws-secret__chip, .iws-secret__change").removeClass("iws-hidden");
+      $wrap.find(".iws-secret__chip, .iws-secret__actions").removeClass("iws-hidden");
+    });
+
+    $(document).on("click", ".iws-secret__remove", function () {
+      // eslint-disable-next-line no-alert
+      if (
+        !window.confirm(
+          i18n.removeSecretConfirm ||
+            "Remove this saved value? Related features stop working until a new one is saved.",
+        )
+      ) {
+        return;
+      }
+      var $wrap = $(this).closest(".iws-secret");
+      $wrap.find(".iws-secret__remove-flag").val("1");
+      $wrap.find(".iws-secret__chip").addClass("iws-secret__chip--pending");
+      $wrap.find(".iws-secret__actions").addClass("iws-hidden");
+      $wrap.find(".iws-secret__pending").removeClass("iws-hidden");
+    });
+
+    $(document).on("click", ".iws-secret__undo", function () {
+      var $wrap = $(this).closest(".iws-secret");
+      $wrap.find(".iws-secret__remove-flag").val("");
+      $wrap.find(".iws-secret__chip").removeClass("iws-secret__chip--pending");
+      $wrap.find(".iws-secret__pending").addClass("iws-hidden");
+      $wrap.find(".iws-secret__actions").removeClass("iws-hidden");
     });
   }); // end document.ready
 })(jQuery);
