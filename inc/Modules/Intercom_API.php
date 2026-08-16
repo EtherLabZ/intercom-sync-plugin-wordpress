@@ -300,6 +300,28 @@ final class Intercom_API {
 	}
 
 	/**
+	 * List the names of existing contact data attributes in the workspace.
+	 *
+	 * @return string[]|\WP_Error Attribute names, or WP_Error on failure.
+	 */
+	public function get_contact_attribute_names() {
+		$result = $this->request( 'GET', '/data_attributes?model=contact' );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$names = array();
+		foreach ( (array) ( $result['data'] ?? array() ) as $attribute ) {
+			if ( isset( $attribute['name'] ) ) {
+				$names[] = (string) $attribute['name'];
+			}
+		}
+
+		return $names;
+	}
+
+	/**
 	 * List all data attributes for contacts.
 	 *
 	 * @return array<string, mixed>|\WP_Error
