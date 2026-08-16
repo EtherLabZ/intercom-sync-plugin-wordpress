@@ -4,7 +4,7 @@ Tags: woocommerce, intercom, crm, abandoned cart, fin
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,10 @@ Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-GCM (
 
 == Changelog ==
 
+= 2.1.1 =
+* Changed: the secret fields' Save and Remove actions now apply immediately (with confirmation for Remove) instead of waiting for the settings form to be saved, and the page refreshes to show the new state.
+* New: a Save button appears next to the field when entering or replacing a token/secret; pressing Enter in the field saves it too.
+
 = 2.1.0 =
 * Security: access tokens and secrets are now encrypted with AES-256-GCM using a random IV per value (previously AES-256-CBC with a static IV); existing stored values migrate automatically on next save.
 * Security: the settings screen no longer echoes stored tokens/secrets back into the page — fields render empty and leaving them blank keeps the stored value.
@@ -102,6 +106,9 @@ Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-GCM (
 * Persist the active admin tab across form submits and reloads.
 
 == Upgrade Notice ==
+
+= 2.1.1 =
+Small UX release: token/secret Save and Remove now apply instantly.
 
 = 2.1.0 =
 Security hardening (encryption, secret handling, Fin endpoint ownership checks) and a prefix rename with automatic settings migration. Update any custom `iws_*` filter hooks and Fin REST URLs (`iws/v1` → `etherlabz-intercom/v1`).

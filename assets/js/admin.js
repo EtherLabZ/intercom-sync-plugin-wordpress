@@ -801,6 +801,8 @@
       $wrap.find(".iws-secret__chip, .iws-secret__actions").removeClass("iws-hidden");
     });
 
+    // Remove applies immediately: confirm, clear server-side, reload so the
+    // whole screen re-renders from the saved state.
     $(document).on("click", ".iws-secret__remove", function () {
       // eslint-disable-next-line no-alert
       if (
@@ -812,18 +814,69 @@
         return;
       }
       var $wrap = $(this).closest(".iws-secret");
-      $wrap.find(".iws-secret__remove-flag").val("1");
-      $wrap.find(".iws-secret__chip").addClass("iws-secret__chip--pending");
-      $wrap.find(".iws-secret__actions").addClass("iws-hidden");
-      $wrap.find(".iws-secret__pending").removeClass("iws-hidden");
+      var $btn = $(this).prop("disabled", true);
+      $.post(etherlabzIntercomAdmin.ajaxUrl, {
+        action: "etherlabz_intercom_secret_remove",
+        nonce: etherlabzIntercomAdmin.nonce,
+        option: $wrap.find("input[type=password]").attr("name"),
+      })
+        .done(function (res) {
+          if (res.success) {
+            window.location.reload();
+          } else {
+            $btn.prop("disabled", false);
+            // eslint-disable-next-line no-alert
+            window.alert((res.data && res.data.message) || i18n.requestFailed || "Request failed.");
+          }
+        })
+        .fail(function () {
+          $btn.prop("disabled", false);
+          // eslint-disable-next-line no-alert
+          window.alert(i18n.requestFailed || "Request failed.");
+        });
     });
 
-    $(document).on("click", ".iws-secret__undo", function () {
-      var $wrap = $(this).closest(".iws-secret");
-      $wrap.find(".iws-secret__remove-flag").val("");
-      $wrap.find(".iws-secret__chip").removeClass("iws-secret__chip--pending");
-      $wrap.find(".iws-secret__pending").addClass("iws-hidden");
-      $wrap.find(".iws-secret__actions").removeClass("iws-hidden");
+    // Save applies the replacement immediately, then reloads.
+    function saveSecret($wrap) {
+      var $input = $wrap.find("input[type=password]");
+      var value = String($input.val()).trim();
+      if (!value) {
+        $input.trigger("focus");
+        return;
+      }
+      var $btn = $wrap.find(".iws-secret__save").prop("disabled", true);
+      $.post(etherlabzIntercomAdmin.ajaxUrl, {
+        action: "etherlabz_intercom_secret_save",
+        nonce: etherlabzIntercomAdmin.nonce,
+        option: $input.attr("name"),
+        value: value,
+      })
+        .done(function (res) {
+          if (res.success) {
+            window.location.reload();
+          } else {
+            $btn.prop("disabled", false);
+            // eslint-disable-next-line no-alert
+            window.alert((res.data && res.data.message) || i18n.requestFailed || "Request failed.");
+          }
+        })
+        .fail(function () {
+          $btn.prop("disabled", false);
+          // eslint-disable-next-line no-alert
+          window.alert(i18n.requestFailed || "Request failed.");
+        });
+    }
+
+    $(document).on("click", ".iws-secret__save", function () {
+      saveSecret($(this).closest(".iws-secret"));
+    });
+
+    // Enter inside a secret input saves that secret, not the whole form.
+    $(document).on("keydown", ".iws-secret input[type=password]", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        saveSecret($(this).closest(".iws-secret"));
+      }
     });
   }); // end document.ready
 })(jQuery);
