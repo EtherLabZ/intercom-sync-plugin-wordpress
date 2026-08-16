@@ -1,10 +1,10 @@
-=== Etherlabz Intercom Sync for WooCommerce ===
+=== Etherlabz Intercom Sync ===
 Contributors: etherlabz
 Tags: woocommerce, intercom, crm, abandoned cart, fin
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 2.1.3
+Stable tag: 2.1.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,7 +50,7 @@ Intercom privacy policy: https://www.intercom.com/legal/privacy
 == Installation ==
 
 1. Upload the plugin to `wp-content/plugins/etherlabz-intercom-sync`, or install it from **Plugins → Add New → Upload Plugin**.
-2. Activate **Etherlabz Intercom Sync for WooCommerce** (WooCommerce must be active).
+2. Activate **Etherlabz Intercom Sync** (WooCommerce must be active).
 3. Open **Intercom Sync** in the admin sidebar.
 4. Paste your Intercom **Access Token** and click **Test Connection**.
 5. (Optional) Add your **App ID** and **Identity Verification Secret**, then enable the Messenger and any funnel/subscription/tagging features you want.
@@ -86,6 +86,9 @@ Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-GCM (
 1. Settings tab — Intercom Access Token, connection test, and sync feature toggles.
 
 == Changelog ==
+
+= 2.1.4 =
+* Changed: display name shortened to "Etherlabz Intercom Sync" so the wordpress.org-derived slug matches the plugin's text domain (`etherlabz-intercom-sync`). Functionality unchanged; it is still the WooCommerce integration.
 
 = 2.1.3 =
 * Fix: identity verification now hashes the WordPress user ID instead of the email. Intercom validates the hash against user_id whenever user_id is sent, so workspaces enforcing identity verification saw a blank Messenger for logged-in users.
