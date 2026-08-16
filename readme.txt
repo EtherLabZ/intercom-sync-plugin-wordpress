@@ -4,7 +4,7 @@ Tags: woocommerce, intercom, crm, abandoned cart, fin
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -82,6 +82,9 @@ Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-GCM (
 1. Settings tab — Intercom Access Token, connection test, and sync feature toggles.
 
 == Changelog ==
+
+= 2.1.2 =
+* Fix: "Register Attributes" no longer reports attributes that already exist in your Intercom workspace as failures. It now checks the workspace first and recognises Intercom's "You already have this in your people data" response as already-existing.
 
 = 2.1.1 =
 * Changed: the secret fields' Save and Remove actions now apply immediately (with confirmation for Remove) instead of waiting for the settings form to be saved, and the page refreshes to show the new state.

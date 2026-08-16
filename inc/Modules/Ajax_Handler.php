@@ -89,6 +89,28 @@ final class Ajax_Handler implements Registrable {
 	}
 
 	/**
+	 * Whether an attribute-creation error means "it already exists".
+	 *
+	 * Intercom signals this three ways depending on API version and attribute
+	 * origin: error code `attribute_already_exists`, HTTP 409, or — for
+	 * attributes that live in "people data" — HTTP 400 `parameter_invalid`
+	 * with a "You already have '…'" message.
+	 *
+	 * @param int    $http_status HTTP status of the failed request.
+	 * @param string $error_code  Intercom error code, if any.
+	 * @param string $message     Full error message.
+	 */
+	public static function is_attribute_exists_error( int $http_status, string $error_code, string $message ): bool {
+		if ( 'attribute_already_exists' === $error_code || 409 === $http_status ) {
+			return true;
+		}
+
+		return 400 === $http_status
+			&& 'parameter_invalid' === $error_code
+			&& false !== stripos( $message, 'already have' );
+	}
+
+	/**
 	 * Read and whitelist the posted secret option name; exits on mismatch.
 	 */
 	private function resolve_secret_option(): string {
@@ -267,7 +289,20 @@ final class Ajax_Handler implements Registrable {
 		$skipped = 0;
 		$errors  = 0;
 
+		// Ask the workspace what already exists so re-runs are clean no-ops
+		// instead of a wall of "already have" errors in the sync log. If the
+		// listing call fails we fall back to trying each create.
+		$existing = $api->get_contact_attribute_names();
+		if ( is_wp_error( $existing ) ) {
+			$existing = array();
+		}
+
 		foreach ( $attributes as $attr ) {
+			if ( in_array( $attr['name'], $existing, true ) ) {
+				++$skipped;
+				continue;
+			}
+
 			$result = $api->create_data_attribute( $attr['name'], $attr['type'], $attr['desc'] );
 
 			if ( is_wp_error( $result ) ) {
@@ -289,8 +324,7 @@ final class Ajax_Handler implements Registrable {
 					return; // wp_send_json_error exits, but return satisfies static analysis.
 				}
 
-				// 422 with "attribute_already_exists" — this attribute already exists; skip it.
-				if ( 'attribute_already_exists' === $error_code || 409 === $http_status ) {
+				if ( self::is_attribute_exists_error( $http_status, (string) $error_code, $result->get_error_message() ) ) {
 					++$skipped;
 				} else {
 					// Any other HTTP error (500, rate-limit 429, etc.) — count as real error.
