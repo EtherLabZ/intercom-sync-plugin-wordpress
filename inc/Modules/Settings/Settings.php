@@ -369,23 +369,21 @@ final class Settings implements Registrable {
 				<span class="iws-secret__actions">
 					<button type="button" class="button iws-secret__change"><span class="dashicons dashicons-edit"></span>%5$s</button>
 					<button type="button" class="button iws-secret__remove iws-icon-btn iws-icon-btn--danger" aria-label="%6$s" title="%6$s"><span class="dashicons dashicons-trash"></span></button>
-				</span>
-				<span class="iws-secret__pending iws-hidden">%7$s <button type="button" class="button-link iws-secret__undo">%8$s</button></span>',
+				</span>',
 				esc_attr( $chip_class ),
 				esc_attr( $icon ),
 				esc_html( $mask ),
 				$badge, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above from escaped parts.
 				esc_html( $change_label ),
-				esc_attr( $remove_label ),
-				esc_html__( 'Removes when you save changes.', 'etherlabz-intercom-sync' ),
-				esc_html__( 'Undo', 'etherlabz-intercom-sync' )
+				esc_attr( $remove_label )
 			);
+		}
 
-			// Companion flag read by sanitize_secret(); set to 1 by the Remove button.
-			printf(
-				'<input type="hidden" name="%s_remove" value="" class="iws-secret__remove-flag" />',
-				esc_attr( $option )
-			);
+		// The Save button applies immediately over AJAX; the input still
+		// participates in the normal form save as a no-JS fallback.
+		$editor_buttons = '<button type="button" class="button button-primary iws-secret__save"><span class="dashicons dashicons-yes"></span>' . esc_html__( 'Save', 'etherlabz-intercom-sync' ) . '</button>';
+		if ( $stored || $broken ) {
+			$editor_buttons .= '<button type="button" class="button iws-secret__cancel"><span class="dashicons dashicons-no-alt"></span>' . esc_html__( 'Cancel', 'etherlabz-intercom-sync' ) . '</button>';
 		}
 
 		printf(
@@ -394,9 +392,7 @@ final class Settings implements Registrable {
 			esc_attr( $option ),
 			esc_attr( $add_placeholder ),
 			( $stored || $broken ) ? ' disabled' : '',
-			( $stored || $broken )
-				? '<button type="button" class="button iws-secret__cancel"><span class="dashicons dashicons-no-alt"></span>' . esc_html__( 'Cancel', 'etherlabz-intercom-sync' ) . '</button>'
-				: ''
+			$editor_buttons // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above from escaped parts.
 		);
 
 		echo '</div>';

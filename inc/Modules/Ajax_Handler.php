@@ -36,6 +36,69 @@ final class Ajax_Handler implements Registrable {
 		add_action( 'wp_ajax_etherlabz_intercom_generate_fin_key', array( $this, 'generate_fin_key' ) );
 		add_action( 'wp_ajax_etherlabz_intercom_save_segments', array( $this, 'save_segments' ) );
 		add_action( 'wp_ajax_etherlabz_intercom_run_cron_now', array( $this, 'run_cron_now' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_secret_save', array( $this, 'secret_save' ) );
+		add_action( 'wp_ajax_etherlabz_intercom_secret_remove', array( $this, 'secret_remove' ) );
+	}
+
+	/**
+	 * Options the secret save/remove endpoints may touch.
+	 *
+	 * @var string[]
+	 */
+	private const SECRET_OPTIONS = array(
+		'etherlabz_intercom_access_token',
+		'etherlabz_intercom_hmac_secret',
+	);
+
+	/**
+	 * Save a replacement value for a secret option (applies immediately).
+	 */
+	public function secret_save(): void {
+		$this->verify_request();
+
+		$option = $this->resolve_secret_option();
+
+		// Only trimmed, not sanitize_text_field'd — tokens may contain
+		// characters that sanitizer would mangle.
+		$value = trim( (string) wp_unslash( $_POST['value'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- encrypted below, never rendered.
+
+		if ( '' === $value ) {
+			wp_send_json_error( array( 'message' => __( 'Enter a value first.', 'etherlabz-intercom-sync' ) ) );
+		}
+
+		update_option( $option, Encryption::encrypt( $value ) );
+
+		wp_send_json_success( array( 'message' => __( 'Saved.', 'etherlabz-intercom-sync' ) ) );
+	}
+
+	/**
+	 * Remove a stored secret option (applies immediately).
+	 *
+	 * Uses delete_option, NOT update_option( ..., '' ): update_option runs the
+	 * registered sanitize callback, whose blank-input semantics are "keep the
+	 * stored value" — which would silently re-save the secret being removed.
+	 */
+	public function secret_remove(): void {
+		$this->verify_request();
+
+		$option = $this->resolve_secret_option();
+
+		delete_option( $option );
+
+		wp_send_json_success( array( 'message' => __( 'Removed.', 'etherlabz-intercom-sync' ) ) );
+	}
+
+	/**
+	 * Read and whitelist the posted secret option name; exits on mismatch.
+	 */
+	private function resolve_secret_option(): string {
+		$option = sanitize_key( (string) ( $_POST['option'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+		if ( ! in_array( $option, self::SECRET_OPTIONS, true ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unknown setting.', 'etherlabz-intercom-sync' ) ) );
+		}
+
+		return $option;
 	}
 
 	/**
