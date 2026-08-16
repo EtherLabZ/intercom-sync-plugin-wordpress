@@ -81,7 +81,7 @@ window.intercomSettings = <?php echo $json; ?>;
 	 */
 	private function build_settings_payload( string $app_id ): array {
 		$settings = array(
-			'api_base' => 'https://api-iam.intercom.io',
+			'api_base' => self::get_api_base(),
 			'app_id'   => $app_id,
 		);
 
@@ -98,7 +98,12 @@ window.intercomSettings = <?php echo $json; ?>;
 			$settings['name']       = trim( $user->display_name );
 			$settings['created_at'] = $created_at;
 
-			$user_hash = self::generate_user_hash( $user->user_email );
+			// Intercom's identity-verification rule: when user_id is sent, the
+			// hash must be an HMAC of user_id — email hashes only apply when
+			// email is the sole identifier. We always send user_id for
+			// logged-in users, so hash that; a mismatched hash makes the
+			// Messenger refuse to boot on enforcing workspaces.
+			$user_hash = self::generate_user_hash( (string) $user->ID );
 
 			if ( '' !== $user_hash ) {
 				$settings['user_hash'] = $user_hash;
@@ -136,6 +141,24 @@ window.intercomSettings = <?php echo $json; ?>;
 		}
 
 		return hash_hmac( 'sha256', $identifier, $secret );
+	}
+
+	/**
+	 * Messenger API base for the configured workspace region.
+	 *
+	 * Intercom hosts workspaces in three regions with distinct Messenger
+	 * endpoints; booting against the wrong one leaves the widget blank.
+	 */
+	public static function get_api_base(): string {
+		$region = (string) get_option( 'etherlabz_intercom_region', 'us' );
+
+		$bases = array(
+			'us' => 'https://api-iam.intercom.io',
+			'eu' => 'https://api-iam.eu.intercom.io',
+			'au' => 'https://api-iam.au.intercom.io',
+		);
+
+		return $bases[ $region ] ?? $bases['us'];
 	}
 
 	/**

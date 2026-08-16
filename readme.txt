@@ -4,7 +4,7 @@ Tags: woocommerce, intercom, crm, abandoned cart, fin
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 2.1.2
+Stable tag: 2.1.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,7 +37,7 @@ This plugin connects to **Intercom**, a third-party customer-messaging service, 
 
 What is sent and when:
 
-* **Contact sync** (on customer create/update, order status change, and bulk sync): customer email, name, phone, WooCommerce customer ID, order count, lifetime value, billing city and country are sent to the Intercom REST API (`https://api.intercom.io`).
+* **Contact sync** (on customer create/update, order status change, and bulk sync): customer email, name, phone, WooCommerce customer ID, order count, lifetime value, billing city and country are sent to the Intercom REST API (`https://api.intercom.io`, or the regional `api.eu.intercom.io` / `api.au.intercom.io` host matching your workspace-region setting).
 * **Events** (on order status change, cart activity, subscription changes): the customer email plus event metadata (order id, totals, line items, statuses) are sent to `https://api.intercom.io/events`.
 * **Messenger embed** (only if you enable it and supply an App ID): the Intercom Messenger JavaScript is loaded from `https://widget.intercom.io/widget/<app-id>` (talking to `https://api-iam.intercom.io`) on the front end, and the logged-in user's email/name (plus an HMAC hash if a secret is configured) are passed to it.
 * **Fin connector**: Intercom's Fin AI calls back into your site's REST endpoints (it does not send store data outward); requests are authenticated with a Bearer key you generate.
@@ -73,6 +73,10 @@ Intercom requires E.164 format (`+<country><number>`). The plugin normalises num
 
 Yes. The plugin declares WooCommerce as a required plugin and will not run without it.
 
+= The Messenger opens blank — why? =
+
+Three usual suspects: (1) your workspace restricts the Messenger to trusted domains (Intercom → Settings → Messenger → Security) and your site or test domain isn't listed; (2) the Workspace Region setting doesn't match where your Intercom workspace is hosted; (3) an ad blocker. The browser console will name the exact cause.
+
 = Is my Access Token stored securely? =
 
 Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-GCM (random IV per value, authenticated) keyed off your site's `AUTH_KEY`.
@@ -82,6 +86,10 @@ Yes. Tokens and secrets are encrypted at rest in `wp_options` with AES-256-GCM (
 1. Settings tab — Intercom Access Token, connection test, and sync feature toggles.
 
 == Changelog ==
+
+= 2.1.3 =
+* Fix: identity verification now hashes the WordPress user ID instead of the email. Intercom validates the hash against user_id whenever user_id is sent, so workspaces enforcing identity verification saw a blank Messenger for logged-in users.
+* New: workspace region setting (US / Europe / Australia). EU- and AU-hosted workspaces need regional API endpoints for both syncing and the Messenger.
 
 = 2.1.2 =
 * Fix: "Register Attributes" no longer reports attributes that already exist in your Intercom workspace as failures. It now checks the workspace first and recognises Intercom's "You already have this in your people data" response as already-existing.

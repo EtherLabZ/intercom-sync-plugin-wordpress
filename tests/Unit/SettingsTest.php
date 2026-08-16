@@ -184,6 +184,21 @@ class SettingsTest extends TestCase {
 	}
 
 	// ------------------------------------------------------------------
+	// sanitize_region()
+	// ------------------------------------------------------------------
+
+	public function test_sanitize_region_accepts_known_regions(): void {
+		$this->assertSame( 'eu', Settings::sanitize_region( 'eu' ) );
+		$this->assertSame( 'au', Settings::sanitize_region( 'au' ) );
+		$this->assertSame( 'us', Settings::sanitize_region( 'us' ) );
+	}
+
+	public function test_sanitize_region_defaults_unknown_to_us(): void {
+		$this->assertSame( 'us', Settings::sanitize_region( 'mars' ) );
+		$this->assertSame( 'us', Settings::sanitize_region( null ) );
+	}
+
+	// ------------------------------------------------------------------
 	// sanitize_minutes()
 	// ------------------------------------------------------------------
 

@@ -95,6 +95,16 @@ final class Settings implements Registrable {
 
 		register_setting(
 			self::GROUP,
+			'etherlabz_intercom_region',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_region' ),
+				'default'           => 'us',
+			)
+		);
+
+		register_setting(
+			self::GROUP,
 			'etherlabz_intercom_enable_messenger',
 			array(
 				'type'              => 'string',
@@ -252,6 +262,14 @@ final class Settings implements Registrable {
 			'etherlabz_intercom_app_id',
 			__( 'Intercom App ID', 'etherlabz-intercom-sync' ),
 			array( $this, 'render_app_id_field' ),
+			Admin_Screen::SCREEN_ID,
+			self::SECTION
+		);
+
+		add_settings_field(
+			'etherlabz_intercom_region',
+			__( 'Workspace Region', 'etherlabz-intercom-sync' ),
+			array( $this, 'render_region_field' ),
 			Admin_Screen::SCREEN_ID,
 			self::SECTION
 		);
@@ -455,6 +473,30 @@ final class Settings implements Registrable {
 	}
 
 	/**
+	 * Render the workspace-region selector.
+	 */
+	public function render_region_field(): void {
+		$value   = (string) get_option( 'etherlabz_intercom_region', 'us' );
+		$regions = array(
+			'us' => __( 'US (default)', 'etherlabz-intercom-sync' ),
+			'eu' => __( 'Europe', 'etherlabz-intercom-sync' ),
+			'au' => __( 'Australia', 'etherlabz-intercom-sync' ),
+		);
+
+		echo '<select id="etherlabz_intercom_region" name="etherlabz_intercom_region">';
+		foreach ( $regions as $key => $label ) {
+			printf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( $key ),
+				selected( $value, $key, false ),
+				esc_html( $label )
+			);
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__( 'Where your Intercom workspace is hosted. Wrong region = failed syncs and a blank Messenger. Intercom → Settings → Workspace → General.', 'etherlabz-intercom-sync' ) . '</p>';
+	}
+
+	/**
 	 * Render the Messenger embed toggle.
 	 */
 	public function render_messenger_toggle(): void {
@@ -568,6 +610,15 @@ final class Settings implements Registrable {
 	public static function sanitize_app_id( $value ): string {
 		$value = is_string( $value ) ? trim( $value ) : '';
 		return (string) preg_replace( '/[^a-zA-Z0-9_-]/', '', $value );
+	}
+
+	/**
+	 * Sanitize the workspace region — one of us / eu / au.
+	 *
+	 * @param mixed $value The raw value.
+	 */
+	public static function sanitize_region( $value ): string {
+		return in_array( $value, array( 'us', 'eu', 'au' ), true ) ? $value : 'us';
 	}
 
 	/**
