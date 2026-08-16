@@ -41,7 +41,7 @@ if ( $etherlabz_intercom_has_fin_key ) {
 			<span class="iws-header__version">v<?php echo esc_html( ETHERLABZ_INTERCOM_VERSION ); ?></span>
 		</div>
 		<p class="iws-header__desc">
-			<?php esc_html_e( 'The complete Intercom integration for WooCommerce — customers, order events, cart funnel, abandoned carts, subscriptions and tags.', 'etherlabz-intercom-sync' ); ?>
+			<?php esc_html_e( 'Customers, orders, carts and Fin — synced with Intercom.', 'etherlabz-intercom-sync' ); ?>
 		</p>
 	</div>
 

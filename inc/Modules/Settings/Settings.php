@@ -319,38 +319,77 @@ final class Settings implements Registrable {
 	 * Render the access-token field.
 	 */
 	public function render_token_field(): void {
-		$raw    = (string) get_option( 'etherlabz_intercom_access_token', '' );
-		$stored = '' !== Encryption::decrypt( $raw );
+		$this->render_secret_field(
+			'etherlabz_intercom_access_token',
+			__( 'Paste your Intercom access token', 'etherlabz-intercom-sync' ),
+			__( 'Intercom → Settings → Developers → Access Token', 'etherlabz-intercom-sync' )
+		);
+	}
 
-		if ( Encryption::is_undecryptable( $raw ) ) {
+	/**
+	 * Render a write-only secret field with an explicit lifecycle UI.
+	 *
+	 * Saved:  a locked chip (masked value + last 4) with a "Change" button;
+	 *         the input stays hidden AND disabled, so nothing is submitted
+	 *         and the stored value is kept.
+	 * Broken: the chip flips to a warning ("Re-enter") when the stored blob
+	 *         can no longer be decrypted (security keys changed).
+	 * Empty:  a plain input.
+	 *
+	 * The decrypted secret is never echoed into the page — only its last
+	 * four characters, to identify which credential is stored.
+	 *
+	 * @param string $option          Option name (also used as input id/name).
+	 * @param string $add_placeholder Placeholder for the empty/replace input.
+	 * @param string $hint            One-line hint under the field.
+	 */
+	private function render_secret_field( string $option, string $add_placeholder, string $hint ): void {
+		$raw    = (string) get_option( $option, '' );
+		$plain  = Encryption::decrypt( $raw );
+		$broken = Encryption::is_undecryptable( $raw );
+		$stored = '' !== $plain;
+
+		echo '<div class="iws-secret">';
+
+		if ( $stored || $broken ) {
+			$chip_class = $broken ? 'iws-secret__chip iws-secret__chip--broken' : 'iws-secret__chip';
+			$icon       = $broken ? 'dashicons-warning' : 'dashicons-lock';
+			$mask       = $stored ? '•••••••• ' . substr( $plain, -4 ) : '••••••••';
+			$badge      = $broken
+				? '<span class="iws-badge iws-badge--error">' . esc_html__( 'Needs re-entry', 'etherlabz-intercom-sync' ) . '</span>'
+				: '<span class="iws-badge iws-badge--success">' . esc_html__( 'Saved', 'etherlabz-intercom-sync' ) . '</span>';
+
 			printf(
-				'<input type="password" id="etherlabz_intercom_access_token" name="etherlabz_intercom_access_token" value="" class="regular-text" autocomplete="off" placeholder="%s" />',
-				esc_attr__( 'Stored token can’t be decrypted — paste it again', 'etherlabz-intercom-sync' )
+				'<span class="%1$s"><span class="dashicons %2$s"></span><code>%3$s</code>%4$s</span>
+				<button type="button" class="button iws-secret__change">%5$s</button>',
+				esc_attr( $chip_class ),
+				esc_attr( $icon ),
+				esc_html( $mask ),
+				$badge, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above from escaped parts.
+				$broken
+					? esc_html__( 'Re-enter', 'etherlabz-intercom-sync' )
+					: esc_html__( 'Change', 'etherlabz-intercom-sync' )
 			);
-			echo '<p class="description"><span class="dashicons dashicons-warning iws-lock-icon"></span> ';
-			echo esc_html__( 'Your site’s security keys changed since this token was saved, so it can no longer be decrypted. Re-enter it to resume syncing.', 'etherlabz-intercom-sync' );
-			echo '</p>';
-			return;
 		}
-
-		// The decrypted token is never echoed back into the page. When one is
-		// stored, the field renders empty with a masked placeholder; leaving it
-		// blank on save keeps the stored value.
-		$placeholder = $stored
-			? __( '•••••••• (a token is stored — leave blank to keep it)', 'etherlabz-intercom-sync' )
-			: __( 'Paste your Intercom access token', 'etherlabz-intercom-sync' );
 
 		printf(
-			'<input type="password" id="etherlabz_intercom_access_token" name="etherlabz_intercom_access_token" value="" class="regular-text" autocomplete="off" placeholder="%s" />',
-			esc_attr( $placeholder )
+			'<span class="iws-secret__editor%1$s"><input type="password" id="%2$s" name="%2$s" value="" class="regular-text" autocomplete="off" placeholder="%3$s"%4$s />%5$s</span>',
+			( $stored || $broken ) ? ' iws-hidden' : '',
+			esc_attr( $option ),
+			esc_attr( $add_placeholder ),
+			( $stored || $broken ) ? ' disabled' : '',
+			( $stored || $broken )
+				? '<button type="button" class="button-link iws-secret__cancel">' . esc_html__( 'Cancel', 'etherlabz-intercom-sync' ) . '</button>'
+				: ''
 		);
-		echo '<p class="description">';
-		if ( $stored ) {
-			echo '<span class="dashicons dashicons-lock iws-lock-icon"></span> ';
-			echo esc_html__( 'Token is stored encrypted. Enter a new token to replace it.', 'etherlabz-intercom-sync' ) . ' ';
+
+		echo '</div>';
+
+		if ( $broken ) {
+			echo '<p class="description iws-secret__hint">' . esc_html__( 'Your site’s security keys changed, so the saved value can’t be decrypted anymore.', 'etherlabz-intercom-sync' ) . '</p>';
+		} else {
+			echo '<p class="description iws-secret__hint">' . esc_html( $hint ) . '</p>';
 		}
-		echo esc_html__( 'Found in Intercom → Settings → Developers → Access Token.', 'etherlabz-intercom-sync' );
-		echo '</p>';
 	}
 
 	/**
@@ -362,7 +401,7 @@ final class Settings implements Registrable {
 			'<label class="iws-toggle"><input type="checkbox" name="etherlabz_intercom_sync_customers" value="yes" %s /><span class="iws-toggle__slider"></span></label>',
 			checked( $value, 'yes', false )
 		);
-		echo '<span class="description">' . esc_html__( 'Automatically sync new and updated customers to Intercom.', 'etherlabz-intercom-sync' ) . '</span>';
+		echo '<span class="description">' . esc_html__( 'Sync new and updated customers automatically.', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
@@ -374,42 +413,18 @@ final class Settings implements Registrable {
 			'<label class="iws-toggle"><input type="checkbox" name="etherlabz_intercom_sync_orders" value="yes" %s /><span class="iws-toggle__slider"></span></label>',
 			checked( $value, 'yes', false )
 		);
-		echo '<span class="description">' . esc_html__( 'Send order-status events to Intercom when orders change status.', 'etherlabz-intercom-sync' ) . '</span>';
+		echo '<span class="description">' . esc_html__( 'Send an event on every order status change.', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
 	 * Render the HMAC identity verification secret field.
 	 */
 	public function render_hmac_field(): void {
-		$raw    = (string) get_option( 'etherlabz_intercom_hmac_secret', '' );
-		$stored = '' !== Encryption::decrypt( $raw );
-
-		if ( Encryption::is_undecryptable( $raw ) ) {
-			printf(
-				'<input type="password" id="etherlabz_intercom_hmac_secret" name="etherlabz_intercom_hmac_secret" value="" class="regular-text" autocomplete="off" placeholder="%s" />',
-				esc_attr__( 'Stored secret can’t be decrypted — paste it again', 'etherlabz-intercom-sync' )
-			);
-			echo '<p class="description"><span class="dashicons dashicons-warning iws-lock-icon"></span> ';
-			echo esc_html__( 'Your site’s security keys changed since this secret was saved, so it can no longer be decrypted. Re-enter it to keep identity verification working.', 'etherlabz-intercom-sync' );
-			echo '</p>';
-			return;
-		}
-
-		$placeholder = $stored
-			? __( '•••••••• (a secret is stored — leave blank to keep it)', 'etherlabz-intercom-sync' )
-			: __( 'Paste your Intercom identity verification secret', 'etherlabz-intercom-sync' );
-
-		printf(
-			'<input type="password" id="etherlabz_intercom_hmac_secret" name="etherlabz_intercom_hmac_secret" value="" class="regular-text" autocomplete="off" placeholder="%s" />',
-			esc_attr( $placeholder )
+		$this->render_secret_field(
+			'etherlabz_intercom_hmac_secret',
+			__( 'Paste your identity verification secret', 'etherlabz-intercom-sync' ),
+			__( 'Intercom → Settings → Identity Verification', 'etherlabz-intercom-sync' )
 		);
-		echo '<p class="description">';
-		if ( $stored ) {
-			echo '<span class="dashicons dashicons-lock iws-lock-icon"></span> ';
-			echo esc_html__( 'Secret is stored encrypted.', 'etherlabz-intercom-sync' ) . ' ';
-		}
-		echo esc_html__( 'Found in Intercom → Settings → Identity Verification. Used to generate HMAC for the chat widget.', 'etherlabz-intercom-sync' );
-		echo '</p>';
 	}
 
 	/**
@@ -423,7 +438,7 @@ final class Settings implements Registrable {
 			esc_attr__( 'e.g. abc12def', 'etherlabz-intercom-sync' )
 		);
 		echo '<p class="description">';
-		echo esc_html__( 'Your Intercom workspace ID. Required to embed the Messenger widget on your site. Found in Intercom → Settings → Workspace.', 'etherlabz-intercom-sync' );
+		echo esc_html__( 'Workspace ID — required for the Messenger. Intercom → Settings → Workspace.', 'etherlabz-intercom-sync' );
 		echo '</p>';
 	}
 
@@ -434,7 +449,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_messenger',
 			'no',
-			__( 'Embed the Intercom chat widget on the public site (uses HMAC if a secret is set).', 'etherlabz-intercom-sync' )
+			__( 'Show the Intercom chat widget on your store.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -445,7 +460,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_cart_events',
 			'no',
-			__( 'Send product-viewed, cart-added, coupon-applied, and checkout-started events to Intercom.', 'etherlabz-intercom-sync' )
+			__( 'Track product views, add-to-carts, coupons, and checkout starts.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -456,7 +471,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_cart_abandonment',
 			'no',
-			__( 'Fire a `cart-abandoned` event when a logged-in customer leaves items in their cart for longer than the threshold below.', 'etherlabz-intercom-sync' )
+			__( 'Flag carts left idle past the threshold below.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -469,7 +484,7 @@ final class Settings implements Registrable {
 			'<input type="number" id="etherlabz_intercom_cart_abandon_minutes" name="etherlabz_intercom_cart_abandon_minutes" value="%s" min="5" max="10080" step="5" class="small-text" />',
 			esc_attr( (string) $value )
 		);
-		echo '<span class="description"> ' . esc_html__( 'Minutes of inactivity before a cart is considered abandoned. Minimum 5, maximum 10080 (1 week).', 'etherlabz-intercom-sync' ) . '</span>';
+		echo '<span class="description"> ' . esc_html__( '5 min – 1 week.', 'etherlabz-intercom-sync' ) . '</span>';
 	}
 
 	/**
@@ -479,7 +494,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_subscriptions',
 			'no',
-			__( 'Send subscription lifecycle events (activated, renewed, cancelled, payment failed) to Intercom. Requires WooCommerce Subscriptions.', 'etherlabz-intercom-sync' )
+			__( 'Subscription lifecycle events. Needs WooCommerce Subscriptions.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -490,7 +505,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_enable_purchase_tags',
 			'no',
-			__( 'Automatically apply Intercom tags like `purchased-{slug}` and `purchased-category-{slug}` on order completion (and remove them on refund).', 'etherlabz-intercom-sync' )
+			__( 'Tag customers by what they buy; tags come off on refund.', 'etherlabz-intercom-sync' )
 		);
 	}
 
@@ -501,7 +516,7 @@ final class Settings implements Registrable {
 		$this->render_yes_no_toggle(
 			'etherlabz_intercom_sync_guest_checkout',
 			'yes',
-			__( 'Create Intercom contacts for guest checkouts (using the billing email).', 'etherlabz-intercom-sync' )
+			__( 'Include guest checkouts (matched by billing email).', 'etherlabz-intercom-sync' )
 		);
 	}
 

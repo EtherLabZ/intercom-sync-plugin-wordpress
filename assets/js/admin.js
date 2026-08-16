@@ -771,5 +771,34 @@
     });
 
     loadInitialRules();
+
+    /* ---------------------------------------------------------------
+	   Secret fields — explicit Change / Cancel flow
+	   ---------------------------------------------------------------
+	   The stored value never renders in the page; while the input is
+	   hidden it is also disabled, so nothing submits and the saved
+	   value is kept. "Change" arms the input for a replacement. */
+
+    $(document).on("click", ".iws-secret__change", function () {
+      var $wrap = $(this).closest(".iws-secret");
+      $wrap.find(".iws-secret__chip, .iws-secret__change").addClass("iws-hidden");
+      $wrap
+        .find(".iws-secret__editor")
+        .removeClass("iws-hidden")
+        .find("input")
+        .prop("disabled", false)
+        .trigger("focus");
+    });
+
+    $(document).on("click", ".iws-secret__cancel", function () {
+      var $wrap = $(this).closest(".iws-secret");
+      $wrap
+        .find(".iws-secret__editor")
+        .addClass("iws-hidden")
+        .find("input")
+        .val("")
+        .prop("disabled", true);
+      $wrap.find(".iws-secret__chip, .iws-secret__change").removeClass("iws-hidden");
+    });
   }); // end document.ready
 })(jQuery);
